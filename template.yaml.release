@@ -24,13 +24,9 @@ Resources:
         SecurityGroupIds:
           - sg-0d2984c17634f9cd2
         SubnetIds:
-          - subnet-02b47da98b7781fda
           - subnet-099fc423f46e0ffc8
-          - subnet-095a1cfb17b234c7d
           - subnet-078d73d2a5d259f32
-          - subnet-0fa565e12ea171c18
           - subnet-0a51c713e5dfb2a1f
-          - subnet-033a7367d825855ea
           - subnet-0d5e75a7df1adbf44
       Environment:
         Variables:
@@ -57,13 +53,9 @@ Resources:
         SecurityGroupIds:
           - sg-0d2984c17634f9cd2
         SubnetIds:
-          - subnet-02b47da98b7781fda
           - subnet-099fc423f46e0ffc8
-          - subnet-095a1cfb17b234c7d
           - subnet-078d73d2a5d259f32
-          - subnet-0fa565e12ea171c18
           - subnet-0a51c713e5dfb2a1f
-          - subnet-033a7367d825855ea
           - subnet-0d5e75a7df1adbf44
       Environment:
         Variables:
@@ -94,13 +86,9 @@ Resources:
         SecurityGroupIds:
           - sg-0d2984c17634f9cd2
         SubnetIds:
-          - subnet-02b47da98b7781fda
           - subnet-099fc423f46e0ffc8
-          - subnet-095a1cfb17b234c7d
           - subnet-078d73d2a5d259f32
-          - subnet-0fa565e12ea171c18
           - subnet-0a51c713e5dfb2a1f
-          - subnet-033a7367d825855ea
           - subnet-0d5e75a7df1adbf44
       Environment:
         Variables:
@@ -127,13 +115,9 @@ Resources:
         SecurityGroupIds:
           - sg-0d2984c17634f9cd2
         SubnetIds:
-          - subnet-02b47da98b7781fda
           - subnet-099fc423f46e0ffc8
-          - subnet-095a1cfb17b234c7d
           - subnet-078d73d2a5d259f32
-          - subnet-0fa565e12ea171c18
           - subnet-0a51c713e5dfb2a1f
-          - subnet-033a7367d825855ea
           - subnet-0d5e75a7df1adbf44
       Environment:
         Variables:
@@ -164,13 +148,9 @@ Resources:
         SecurityGroupIds:
           - sg-0d2984c17634f9cd2
         SubnetIds:
-          - subnet-02b47da98b7781fda
           - subnet-099fc423f46e0ffc8
-          - subnet-095a1cfb17b234c7d
           - subnet-078d73d2a5d259f32
-          - subnet-0fa565e12ea171c18
           - subnet-0a51c713e5dfb2a1f
-          - subnet-033a7367d825855ea
           - subnet-0d5e75a7df1adbf44
       Environment:
         Variables:
@@ -201,13 +181,9 @@ Resources:
         SecurityGroupIds:
           - sg-0d2984c17634f9cd2
         SubnetIds:
-          - subnet-02b47da98b7781fda
           - subnet-099fc423f46e0ffc8
-          - subnet-095a1cfb17b234c7d
           - subnet-078d73d2a5d259f32
-          - subnet-0fa565e12ea171c18
           - subnet-0a51c713e5dfb2a1f
-          - subnet-033a7367d825855ea
           - subnet-0d5e75a7df1adbf44
       Environment:
         Variables:
@@ -238,13 +214,9 @@ Resources:
         SecurityGroupIds:
           - sg-0d2984c17634f9cd2
         SubnetIds:
-          - subnet-02b47da98b7781fda
           - subnet-099fc423f46e0ffc8
-          - subnet-095a1cfb17b234c7d
           - subnet-078d73d2a5d259f32
-          - subnet-0fa565e12ea171c18
           - subnet-0a51c713e5dfb2a1f
-          - subnet-033a7367d825855ea
           - subnet-0d5e75a7df1adbf44
       Environment:
         Variables:
