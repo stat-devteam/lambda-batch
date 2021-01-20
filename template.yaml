@@ -1,0 +1,228 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: An AWS Serverless Specification template describing your function.
+Resources:
+
+  RewardJobFetcher:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: lambda/reward_job_fetcher.handler
+      Runtime: nodejs12.x
+      Description: '디비에서 전송해야할 예약목록 가져와서 SQS에 등록'
+      MemorySize: 128
+      Timeout: 30
+      Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSSMRole'
+      Events:
+        Schedule1:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 minute)
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-0e2bd8387180359c9
+        SubnetIds:
+          - subnet-0732d7b0216fbe2f7
+          - subnet-078099e1972636375
+          - subnet-08a164a0080a216c4
+          - subnet-00c6531721f8d485a
+      Environment:
+        Variables:
+          QUEUE_URL: https://sqs.ap-northeast-2.amazonaws.com/180677353921/ShiftProductRewardSQS.fifo
+          DB_NAME: shift
+          DB_PORT: '3306'
+          DB_USER: coredot
+          DB_ENDPOINT: shift-dev-aurora-cluster.cluster-c89v5jzuome9.ap-northeast-2.rds.amazonaws.com
+          DB_SM_ID : shift/product/aurora/coredot
+          REGION: ap-northeast-2
+          PLAN_ID : was7u8
+          SM_ID : shift/product/kasinfo
+
+  RewardJobExecutor:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: lambda/reward_job_executor.handler
+      Runtime: nodejs12.x
+      Description: 'SQS에 등록된 전송 예약 작업을 하나 가져와서 실행'
+      MemorySize: 128
+      Timeout: 29
+      Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSCogSMRole'
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-0e2bd8387180359c9
+        SubnetIds:
+          - subnet-0732d7b0216fbe2f7
+          - subnet-078099e1972636375
+          - subnet-08a164a0080a216c4
+          - subnet-00c6531721f8d485a
+      Environment:
+        Variables:
+          DB_NAME: shift
+          DB_PORT: '3306'
+          DB_USER: coredot
+          DB_ENDPOINT: shift-dev-aurora-cluster.cluster-c89v5jzuome9.ap-northeast-2.rds.amazonaws.com
+          DB_SM_ID : shift/product/aurora/coredot
+          REGION: ap-northeast-2
+          PLAN_ID : was7u8
+          SM_ID : shift/product/kasinfo
+
+  TransferJobFetcher:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: lambda/transfer_job_fetcher.handler
+      Runtime: nodejs12.x
+      Description: '전송 상태 확인할 목록 가져와서 SQS에 등록'
+      MemorySize: 128
+      Timeout: 30
+      Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSSMRole'
+      Events:
+        Schedule1:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 minute)
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-0e2bd8387180359c9
+        SubnetIds:
+          - subnet-0732d7b0216fbe2f7
+          - subnet-078099e1972636375
+          - subnet-08a164a0080a216c4
+          - subnet-00c6531721f8d485a
+      Environment:
+        Variables:
+          QUEUE_URL: https://sqs.ap-northeast-2.amazonaws.com/180677353921/ShiftProductTransferSQS.fifo
+          DB_NAME: shift
+          DB_PORT: '3306'
+          DB_USER: coredot
+          DB_ENDPOINT: shift-dev-aurora-cluster.cluster-c89v5jzuome9.ap-northeast-2.rds.amazonaws.com
+          DB_SM_ID : shift/product/aurora/coredot
+          REGION: ap-northeast-2
+          PLAN_ID : was7u8
+          SM_ID : shift/product/kasinfo
+
+  TransferJobExecutor:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: lambda/transfer_job_executor.handler
+      Runtime: nodejs12.x
+      Description: 'SQS에 등록된 전송 상태 확인 작업을 하나 가져와서 실행'
+      MemorySize: 128
+      Timeout: 29
+      Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSCogSMRole'
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-0e2bd8387180359c9
+        SubnetIds:
+          - subnet-0732d7b0216fbe2f7
+          - subnet-078099e1972636375
+          - subnet-08a164a0080a216c4
+          - subnet-00c6531721f8d485a
+      Environment:
+        Variables:
+          DB_NAME: shift
+          DB_PORT: '3306'
+          DB_USER: coredot
+          DB_ENDPOINT: shift-dev-aurora-cluster.cluster-c89v5jzuome9.ap-northeast-2.rds.amazonaws.com
+          DB_SM_ID : shift/product/aurora/coredot
+          REGION: ap-northeast-2
+          PLAN_ID : was7u8
+          SM_ID : shift/product/kasinfo
+
+  RewardCleaner:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: lambda/reward_cleaner.handler
+      Runtime: nodejs12.x
+      Description: '예약 등록된 작업들중 유효하지 않은것들 찾아서 삭제(또는 상태 셋팅)'
+      MemorySize: 128
+      Timeout: 30
+      Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSSMRole'
+      Events:
+        Schedule1:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 minute)
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-0e2bd8387180359c9
+        SubnetIds:
+          - subnet-0732d7b0216fbe2f7
+          - subnet-078099e1972636375
+          - subnet-08a164a0080a216c4
+          - subnet-00c6531721f8d485a
+      Environment:
+        Variables:
+          DB_NAME: shift
+          DB_PORT: '3306'
+          DB_USER: coredot
+          DB_ENDPOINT: shift-dev-aurora-cluster.cluster-c89v5jzuome9.ap-northeast-2.rds.amazonaws.com
+          DB_SM_ID : shift/product/aurora/coredot
+          REGION: ap-northeast-2
+          PLAN_ID : was7u8
+          SM_ID : shift/product/kasinfo
+
+  TransferCleaner:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: lambda/transfer_cleaner.handler
+      Runtime: nodejs12.x
+      Description: '전송 등록된 작업들중 유효하지 않은것들 찾아서 삭제(또는 상태 셋팅)'
+      MemorySize: 128
+      Timeout: 30
+      Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSSMRole'
+      Events:
+        Schedule1:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 minute)
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-0e2bd8387180359c9
+        SubnetIds:
+          - subnet-0732d7b0216fbe2f7
+          - subnet-078099e1972636375
+          - subnet-08a164a0080a216c4
+          - subnet-00c6531721f8d485a
+      Environment:
+        Variables:
+          DB_NAME: shift
+          DB_PORT: '3306'
+          DB_USER: coredot
+          DB_ENDPOINT: shift-dev-aurora-cluster.cluster-c89v5jzuome9.ap-northeast-2.rds.amazonaws.com
+          DB_SM_ID : shift/product/aurora/coredot
+          REGION: ap-northeast-2
+          PLAN_ID : was7u8
+          SM_ID : shift/product/kasinfo
+
+  TempLinkCleaner:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: lambda/templink_cleaner.handler
+      Runtime: nodejs12.x
+      Description: '임시 링크에 등록된 작업들중 유효하지 않은것들 찾아서 삭제(또는 상태 셋팅)'
+      MemorySize: 128
+      Timeout: 30
+      Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSSMRole'
+      Events:
+        Schedule1:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 day)
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-0e2bd8387180359c9
+        SubnetIds:
+          - subnet-0732d7b0216fbe2f7
+          - subnet-078099e1972636375
+          - subnet-08a164a0080a216c4
+          - subnet-00c6531721f8d485a
+      Environment:
+        Variables:
+          DB_NAME: shift
+          DB_PORT: '3306'
+          DB_USER: coredot
+          DB_ENDPOINT: shift-dev-aurora-cluster.cluster-c89v5jzuome9.ap-northeast-2.rds.amazonaws.com
+          DB_SM_ID : shift/product/aurora/coredot
+          REGION: ap-northeast-2
+          PLAN_ID : was7u8
+          SM_ID : shift/product/kasinfo
+

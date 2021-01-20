@@ -1,0 +1,20 @@
+{
+    "RewardJobExecutor": {
+        "lambda": {}
+    },
+    "RewardJobFetcher": {
+        "lambda": {}
+    },
+    "RewardCleaner": {
+        "lambda": {}
+    },
+    "TransferCleaner": {
+        "lambda": {}
+    },
+    "TransferJobFetcher": {
+        "lambda": {}
+    },
+    "TransferJobExecutor": {
+        "lambda": {}
+    }
+}

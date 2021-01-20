@@ -1,0 +1,259 @@
+Parameters:
+  AppId:
+    Type: String
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: An AWS Serverless Specification template describing your function.
+Resources:
+
+  RewardJobFetcher:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: lambda/reward_job_fetcher.handler
+      Runtime: nodejs12.x
+      Description: '디비에서 전송해야할 예약목록 가져와서 SQS에 등록'
+      MemorySize: 128
+      Timeout: 30
+      Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSSMRole'
+      Events:
+        Schedule1:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 minute)
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-0d2984c17634f9cd2
+        SubnetIds:
+          - subnet-02b47da98b7781fda
+          - subnet-099fc423f46e0ffc8
+          - subnet-095a1cfb17b234c7d
+          - subnet-078d73d2a5d259f32
+          - subnet-0fa565e12ea171c18
+          - subnet-0a51c713e5dfb2a1f
+          - subnet-033a7367d825855ea
+          - subnet-0d5e75a7df1adbf44
+      Environment:
+        Variables:
+          QUEUE_URL: https://sqs.ap-northeast-2.amazonaws.com/180677353921/ShiftProductRewardSQS.fifo
+          DB_NAME: shift
+          DB_PORT: '3306'
+          DB_USER: shift_lambda
+          DB_ENDPOINT: hk-shift-real-aurora-cluster.cluster-c89v5jzuome9.ap-northeast-2.rds.amazonaws.com
+          DB_SM_ID : shift/release/aurora/shift_lambda
+          REGION: ap-northeast-2
+          PLAN_ID : 0rceel
+          SM_ID : shift/release/kasinfo
+
+  RewardJobExecutor:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: lambda/reward_job_executor.handler
+      Runtime: nodejs12.x
+      Description: 'SQS에 등록된 전송 예약 작업을 하나 가져와서 실행'
+      MemorySize: 128
+      Timeout: 29
+      Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSCogSMRole'
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-0d2984c17634f9cd2
+        SubnetIds:
+          - subnet-02b47da98b7781fda
+          - subnet-099fc423f46e0ffc8
+          - subnet-095a1cfb17b234c7d
+          - subnet-078d73d2a5d259f32
+          - subnet-0fa565e12ea171c18
+          - subnet-0a51c713e5dfb2a1f
+          - subnet-033a7367d825855ea
+          - subnet-0d5e75a7df1adbf44
+      Environment:
+        Variables:
+          DB_NAME: shift
+          DB_PORT: '3306'
+          DB_USER: shift_lambda
+          DB_ENDPOINT: hk-shift-real-aurora-cluster.cluster-c89v5jzuome9.ap-northeast-2.rds.amazonaws.com
+          DB_SM_ID : shift/release/aurora/shift_lambda
+          REGION: ap-northeast-2
+          PLAN_ID : 0rceel
+          SM_ID : shift/release/kasinfo
+
+  TransferJobFetcher:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: lambda/transfer_job_fetcher.handler
+      Runtime: nodejs12.x
+      Description: '전송 상태 확인할 목록 가져와서 SQS에 등록'
+      MemorySize: 128
+      Timeout: 30
+      Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSSMRole'
+      Events:
+        Schedule1:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 minute)
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-0d2984c17634f9cd2
+        SubnetIds:
+          - subnet-02b47da98b7781fda
+          - subnet-099fc423f46e0ffc8
+          - subnet-095a1cfb17b234c7d
+          - subnet-078d73d2a5d259f32
+          - subnet-0fa565e12ea171c18
+          - subnet-0a51c713e5dfb2a1f
+          - subnet-033a7367d825855ea
+          - subnet-0d5e75a7df1adbf44
+      Environment:
+        Variables:
+          QUEUE_URL: https://sqs.ap-northeast-2.amazonaws.com/180677353921/ShiftProductTransferSQS.fifo
+          DB_NAME: shift
+          DB_PORT: '3306'
+          DB_USER: shift_lambda
+          DB_ENDPOINT: hk-shift-real-aurora-cluster.cluster-c89v5jzuome9.ap-northeast-2.rds.amazonaws.com
+          DB_SM_ID : shift/release/aurora/shift_lambda
+          REGION: ap-northeast-2
+          PLAN_ID : 0rceel
+          SM_ID : shift/release/kasinfo
+
+  TransferJobExecutor:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: lambda/transfer_job_executor.handler
+      Runtime: nodejs12.x
+      Description: 'SQS에 등록된 전송 상태 확인 작업을 하나 가져와서 실행'
+      MemorySize: 128
+      Timeout: 29
+      Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSCogSMRole'
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-0d2984c17634f9cd2
+        SubnetIds:
+          - subnet-02b47da98b7781fda
+          - subnet-099fc423f46e0ffc8
+          - subnet-095a1cfb17b234c7d
+          - subnet-078d73d2a5d259f32
+          - subnet-0fa565e12ea171c18
+          - subnet-0a51c713e5dfb2a1f
+          - subnet-033a7367d825855ea
+          - subnet-0d5e75a7df1adbf44
+      Environment:
+        Variables:
+          DB_NAME: shift
+          DB_PORT: '3306'
+          DB_USER: shift_lambda
+          DB_ENDPOINT: hk-shift-real-aurora-cluster.cluster-c89v5jzuome9.ap-northeast-2.rds.amazonaws.com
+          DB_SM_ID : shift/release/aurora/shift_lambda
+          REGION: ap-northeast-2
+          PLAN_ID : 0rceel
+          SM_ID : shift/release/kasinfo
+
+  RewardCleaner:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: lambda/reward_cleaner.handler
+      Runtime: nodejs12.x
+      Description: '예약 등록된 작업들중 유효하지 않은것들 찾아서 삭제(또는 상태 셋팅)'
+      MemorySize: 128
+      Timeout: 30
+      Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSSMRole'
+      Events:
+        Schedule1:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 minute)
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-0d2984c17634f9cd2
+        SubnetIds:
+          - subnet-02b47da98b7781fda
+          - subnet-099fc423f46e0ffc8
+          - subnet-095a1cfb17b234c7d
+          - subnet-078d73d2a5d259f32
+          - subnet-0fa565e12ea171c18
+          - subnet-0a51c713e5dfb2a1f
+          - subnet-033a7367d825855ea
+          - subnet-0d5e75a7df1adbf44
+      Environment:
+        Variables:
+          DB_NAME: shift
+          DB_PORT: '3306'
+          DB_USER: shift_lambda
+          DB_ENDPOINT: hk-shift-real-aurora-cluster.cluster-c89v5jzuome9.ap-northeast-2.rds.amazonaws.com
+          DB_SM_ID : shift/release/aurora/shift_lambda
+          REGION: ap-northeast-2
+          PLAN_ID : 0rceel
+          SM_ID : shift/release/kasinfo
+
+  TransferCleaner:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: lambda/transfer_cleaner.handler
+      Runtime: nodejs12.x
+      Description: '전송 등록된 작업들중 유효하지 않은것들 찾아서 삭제(또는 상태 셋팅)'
+      MemorySize: 128
+      Timeout: 30
+      Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSSMRole'
+      Events:
+        Schedule1:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 minute)
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-0d2984c17634f9cd2
+        SubnetIds:
+          - subnet-02b47da98b7781fda
+          - subnet-099fc423f46e0ffc8
+          - subnet-095a1cfb17b234c7d
+          - subnet-078d73d2a5d259f32
+          - subnet-0fa565e12ea171c18
+          - subnet-0a51c713e5dfb2a1f
+          - subnet-033a7367d825855ea
+          - subnet-0d5e75a7df1adbf44
+      Environment:
+        Variables:
+          DB_NAME: shift
+          DB_PORT: '3306'
+          DB_USER: shift_lambda
+          DB_ENDPOINT: hk-shift-real-aurora-cluster.cluster-c89v5jzuome9.ap-northeast-2.rds.amazonaws.com
+          DB_SM_ID : shift/release/aurora/shift_lambda
+          REGION: ap-northeast-2
+          PLAN_ID : 0rceel
+          SM_ID : shift/release/kasinfo
+
+  TempLinkCleaner:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: lambda/templink_cleaner.handler
+      Runtime: nodejs12.x
+      Description: '임시 링크에 등록된 작업들중 유효하지 않은것들 찾아서 삭제(또는 상태 셋팅)'
+      MemorySize: 128
+      Timeout: 30
+      Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSSMRole'
+      Events:
+        Schedule1:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 day)
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-0d2984c17634f9cd2
+        SubnetIds:
+          - subnet-02b47da98b7781fda
+          - subnet-099fc423f46e0ffc8
+          - subnet-095a1cfb17b234c7d
+          - subnet-078d73d2a5d259f32
+          - subnet-0fa565e12ea171c18
+          - subnet-0a51c713e5dfb2a1f
+          - subnet-033a7367d825855ea
+          - subnet-0d5e75a7df1adbf44
+      Environment:
+        Variables:
+          DB_NAME: shift
+          DB_PORT: '3306'
+          DB_USER: shift_lambda
+          DB_ENDPOINT: hk-shift-real-aurora-cluster.cluster-c89v5jzuome9.ap-northeast-2.rds.amazonaws.com
+          DB_SM_ID : shift/release/aurora/shift_lambda
+          REGION: ap-northeast-2
+          PLAN_ID : 0rceel
+          SM_ID : shift/release/kasinfo
+

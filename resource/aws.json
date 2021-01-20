@@ -1,0 +1,11 @@
+{
+    "cognito" : {
+        "userPoolId" : "ap-northeast-2_vouGSpYU7"
+    },
+    "APIGateway" : {
+      "planId" : "was7u8"
+    },
+    "secretsManager" : {
+        "id" : "shift/product/kasinfo"
+    }
+}

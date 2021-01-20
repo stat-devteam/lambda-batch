@@ -1,0 +1,133 @@
+{
+    "reward_job_fetch_select": {
+        "queryString": "SELECT * FROM reward_queue rq INNER JOIN link l ON l.mbr_id=rq.mbr_id AND l.mbr_grp_id=rq.mbr_grp_id WHERE rq.job_status='ready' AND (rq.reserve_dt IS NULL OR rq.reserve_dt<=NOW()) AND (rq.expire_dt IS NULL OR rq.expire_dt>=now()) LIMIT 100",
+        "params": [],
+        "desc": "보상 예약 작업중 배치작업으로 전송 처리해야할 예약 작업을 가져온다. LIMIT"
+    },
+
+    "reward_job_fetch_update": {
+        "queryString": "UPDATE reward_queue SET job_status='fetched', job_fetched_dt = now() WHERE rwd_q_seq=? AND job_status ='ready'",
+        "params": ["rwd_q_seq"],
+        "desc": "예약 작업 상태를 fetched로 변경"
+    },
+    "reward_job_fetch_ready_update": {
+        "queryString": "UPDATE reward_queue SET job_status='ready', job_fetched_dt = null WHERE rwd_q_seq=?",
+        "params": ["rwd_q_seq"],
+        "desc": "reward 알 수 없는 이유로 오류가 발생할 경우 ready로 다시 한번 기회를 준다."
+    },
+    "reward_job_fetch_invalid_update": {
+        "queryString": "UPDATE reward_queue SET job_status='invalid', transfer_seq=? WHERE rwd_q_seq=?",
+        "params": ["transfer_seq","rwd_q_seq"],
+        "desc": "reward 요청 자체가 잘못 되었을 경우, invalid로 변경"
+    },
+    "reward_job_set_invalid_update": {
+        "queryString": "UPDATE reward_queue SET job_status='invalid' WHERE rwd_q_seq=?",
+        "params": ["rwd_q_seq"],
+        "desc": "reward 요청 자체가 잘못 되었을 경우, invalid로 변경"
+    },
+    "reward_job_fetch_success_update": {
+        "queryString": "UPDATE reward_queue SET job_status='done'  WHERE rwd_q_seq=?",
+        "params": ["rwd_q_seq"],
+        "desc": "reward 전송 성공할 경우, done으로 변경"
+    },
+    "reward_transfer_seq_update": {
+        "queryString": "UPDATE reward_queue SET transfer_seq =?  WHERE rwd_q_seq=?",
+        "params": ["transfer_seq", "rwd_q_seq"],
+        "desc": "reward 전송 성공할 경우, done으로 변경"
+    },
+    "transfer_job_fetch_select": {
+        "queryString": "SELECT * FROM transfer WHERE tx_status IN ('submit','pending') AND job_status='ready' LIMIT 200",
+        "params": [],
+        "desc": "전송 작업중 배치작업으로 트랜잭션 상태를 확인해야할 전송 작업을 가져온다. LIMIT"
+    },
+
+    "transfer_job_fetch_update": {
+        "queryString": "UPDATE transfer SET job_status='fetched', job_fetched_dt = now() WHERE transfer_seq=? AND job_status ='ready'",
+        "params": ["transfer_seq"],
+        "desc": "전송 작업 상태를 fetched로 변경"
+    },
+
+    "reward_queue_expired_clean_update": {
+        "queryString": "UPDATE reward_queue SET job_status='expired' WHERE job_status='ready' AND expire_dt<now()",
+        "params": [],
+        "desc": "유효기간이 지난 예약의 상태값을 expired로 셋팅"
+    },
+
+    "reward_queue_fetched_clean_update": {
+        "queryString": "UPDATE reward_queue SET job_status='ready' WHERE job_status='fetched' AND job_fetched_dt>DATE_ADD(NOW(),INTERVAL 10 MINUTE)",
+        "params": [],
+        "desc": "페치 되었으나 10분이 지난 예약의 상태값을 ready로 셋팅"
+    },
+
+    "transfer_fetched_clean_update": {
+        "queryString": "UPDATE transfer SET job_status='ready' WHERE job_status='fetched' AND job_fetched_dt>DATE_ADD(NOW(),INTERVAL 10 MINUTE)",
+        "params": [],
+        "desc": "페치 되었으나 10분이 지난 전송의 상태값을 ready로 셋팅."
+    },
+
+    "templink_clean_delete": {
+        "queryString": "DELETE FROM link_temp WHERE reg_dt>DATE_ADD(NOW(),INTERVAL 12 DAY)",
+        "params": [],
+        "desc": "12일 지난 임시링크 삭제"
+    },
+    "transfer_status_update": {
+        "queryString": "UPDATE transfer SET tx_status = ?, job_status = ? WHERE transfer_seq = ?",
+        "params": ["tx_status", "job_status", "transferSeq"],
+        "desc": "transfer update tx_status, job_status"
+    },
+    "transfer_status_hash_update": {
+        "queryString": "UPDATE transfer SET tx_status = ?, job_status = ?, tx_hash = ? WHERE transfer_seq = ?",
+        "params": ["tx_status", "job_status", "tx_hash", "transferSeq"],
+        "desc": "transfer update tx,job,hash"
+    },
+    "transfer_status_fee_update": {
+        "queryString": "UPDATE transfer SET tx_status = ?, transfer_end_dt = ?, job_status = ? , fee = ? WHERE transfer_seq = ?",
+        "params": ["newStatus", "completeDate", "job_status","fee", "transferSeq"],
+        "desc": "polling 이후 transfer update"
+    },
+    "transfer_job_status_retry_update": {
+        "queryString": "UPDATE transfer SET job_status = ?, job_fetched_dt = ?  WHERE transfer_seq = ?",
+        "params": [ "job_status", "job_fetched_dt", "transferSeq"],
+        "desc": "transfer update status and job_fetched_dt for retry"
+    },
+    "check_hk_klayton" : {
+        "queryString": "SELECT * FROM hankyung_klaytn_account WHERE accnt_id = (SELECT accnt_id FROM service_group WHERE svc_grp_id = (SELECT svc_grp_id FROM service WHERE svc_num = ? ))",
+        "params": ["serviceNumber"],
+        "desc": "해당 serviceNumber 한경 클레이튼 계정 확인"
+    },
+    "insert_transfer_with_rwd_q" : {
+        "queryString": "INSERT INTO transfer(type, svc_num, link_num, amount, fee, transfer_reg_dt, transfer_end_dt, tx_hash, tx_status, job_status, job_fetched_dt, svc_callback_seq, svc_memo_seq, link_accnt_before_balance, rwd_q_seq) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+        "params": ["transferType", "serviceNumber", "linkNumber", "pebAmount", "fee", "now", "transferEndDate", "txHash", "txStatus", "jobStatus", "now", "serviceCallbackId", "memoSeq", "currentBalance","rwd_q_seq"],
+        "desc": "클레이 전송 후, transfer insert"
+    },
+    "service_callback_get" : {
+        "queryString": "SELECT * FROM service_callback WHERE svc_callback_seq = ? AND callback_status= 'ready'",
+        "params": ["svc_callback_seq"],
+        "desc": "service callback get with ready status"
+    },
+    "service_callback_update" : {
+        "queryString" : "UPDATE service_callback SET callback_url= ? , callback_status = ?, callback_result = ? WHERE svc_callback_seq = ?",
+        "params" : ["callback_url","callback_status","callback_result","svc_callback_seq"],
+        "desc": "service callback set status and result"
+    },
+    "error_log_insert" : {
+        "queryString" : "INSERT INTO error_log(type,code,message) VALUES (?,?,?)",
+        "params" : ["type", "code", "message"],
+        "desc": "insert new error_log"
+    },
+    "reward_log_update" : {
+        "queryString" : "UPDATE reward_queue SET log_seq = ? WHERE rwd_q_seq = ?",
+        "params" : ["log_seq", "rwd_q_seq"],
+        "desc": "reward_log_update"
+    },
+    "transfer_log_update" : {
+        "queryString" : "UPDATE transfer SET log_seq = ? WHERE transfer_seq = ?",
+        "params" : ["log_seq", "transfer_seq"],
+        "desc": "transfer_log_update"
+    },
+    "transfer_get_by_rwd_q" : {
+        "queryString" : "SELECT * FROM transfer WHERE rwd_q_seq = ?",
+        "params" : ["rwd_q_seq"],
+        "desc": "klay send 전에, 리워드 트랜스퍼 있는지 확인"
+    }
+}
