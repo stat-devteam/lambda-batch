@@ -34,7 +34,7 @@ Resources:
           - subnet-0d5e75a7df1adbf44
       Environment:
         Variables:
-          QUEUE_URL: https://sqs.ap-northeast-2.amazonaws.com/180677353921/ShiftProductRewardSQS.fifo
+          QUEUE_URL: https://sqs.ap-northeast-2.amazonaws.com/180677353921/hk_shift_real_sqs_reward.fifo
           DB_NAME: shift
           DB_PORT: '3306'
           DB_USER: shift_lambda
@@ -104,7 +104,7 @@ Resources:
           - subnet-0d5e75a7df1adbf44
       Environment:
         Variables:
-          QUEUE_URL: https://sqs.ap-northeast-2.amazonaws.com/180677353921/ShiftProductTransferSQS.fifo
+          QUEUE_URL: https://sqs.ap-northeast-2.amazonaws.com/180677353921/hk_shift_real_sqs_transfer.fifo
           DB_NAME: shift
           DB_PORT: '3306'
           DB_USER: shift_lambda
