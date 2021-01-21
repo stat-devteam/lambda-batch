@@ -9,8 +9,7 @@ const InsertLogSeq = async function(table, tableId, type, code, message) {
     console.log('InsertLogSeq code', code)
     console.log('InsertLogSeq message', message)
 
-    const connection = await dbHandler.connectRDSProxy(process.env.REGION, process.env.PROXY_ENDPOINT, process.env.DB_PORT, process.env.DB_NAME, process.env.DB_USER);
-
+    const connection = await dbHandler.connectRDS(process.env.DB_ENDPOINT, process.env.DB_PORT, process.env.DB_NAME, process.env.DB_USER)
 
     var inserErrorLogResult = await new Promise((resolve, reject) => {
         connection.query(dbQuery.error_log_insert.queryString, [type, code, message], function(error, results, fields) {
