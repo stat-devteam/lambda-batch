@@ -16,7 +16,7 @@ const checkSearchStringExist = (str) => {
 
 const RequestServiceCallbackUrl = async function(serviceCallbackSeq, searchString) {
 
-    const connection = await dbHandler.connectRDSProxy(process.env.REGION, process.env.PROXY_ENDPOINT, process.env.DB_PORT, process.env.DB_NAME, process.env.DB_USER)
+    const connection = await dbHandler.connectRDS(process.env.DB_ENDPOINT, process.env.DB_PORT, process.env.DB_NAME, process.env.DB_USER)
 
     const serviceCallbackGetResult = await new Promise((resolve, reject) => {
         connection.query(dbQuery.service_callback_get.queryString, [serviceCallbackSeq], function(error, results, fields) {
