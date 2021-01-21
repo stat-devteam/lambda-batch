@@ -24,10 +24,10 @@ Resources:
         SecurityGroupIds:
           - sg-0d2984c17634f9cd2
         SubnetIds:
-          - subnet-099fc423f46e0ffc8
-          - subnet-078d73d2a5d259f32
           - subnet-0a51c713e5dfb2a1f
-          - subnet-0d5e75a7df1adbf44
+          - subnet-078d73d2a5d259f32
+          - subnet-033a7367d825855ea
+          - subnet-0fa565e12ea171c18
       Environment:
         Variables:
           QUEUE_URL: https://sqs.ap-northeast-2.amazonaws.com/180677353921/hk_shift_real_sqs_reward.fifo
@@ -53,10 +53,10 @@ Resources:
         SecurityGroupIds:
           - sg-0d2984c17634f9cd2
         SubnetIds:
-          - subnet-099fc423f46e0ffc8
-          - subnet-078d73d2a5d259f32
           - subnet-0a51c713e5dfb2a1f
-          - subnet-0d5e75a7df1adbf44
+          - subnet-078d73d2a5d259f32
+          - subnet-033a7367d825855ea
+          - subnet-0fa565e12ea171c18
       Environment:
         Variables:
           DB_NAME: shift
@@ -86,10 +86,10 @@ Resources:
         SecurityGroupIds:
           - sg-0d2984c17634f9cd2
         SubnetIds:
-          - subnet-099fc423f46e0ffc8
-          - subnet-078d73d2a5d259f32
           - subnet-0a51c713e5dfb2a1f
-          - subnet-0d5e75a7df1adbf44
+          - subnet-078d73d2a5d259f32
+          - subnet-033a7367d825855ea
+          - subnet-0fa565e12ea171c18
       Environment:
         Variables:
           QUEUE_URL: https://sqs.ap-northeast-2.amazonaws.com/180677353921/hk_shift_real_sqs_transfer.fifo
@@ -115,10 +115,10 @@ Resources:
         SecurityGroupIds:
           - sg-0d2984c17634f9cd2
         SubnetIds:
-          - subnet-099fc423f46e0ffc8
-          - subnet-078d73d2a5d259f32
           - subnet-0a51c713e5dfb2a1f
-          - subnet-0d5e75a7df1adbf44
+          - subnet-078d73d2a5d259f32
+          - subnet-033a7367d825855ea
+          - subnet-0fa565e12ea171c18
       Environment:
         Variables:
           DB_NAME: shift
@@ -148,10 +148,10 @@ Resources:
         SecurityGroupIds:
           - sg-0d2984c17634f9cd2
         SubnetIds:
-          - subnet-099fc423f46e0ffc8
-          - subnet-078d73d2a5d259f32
           - subnet-0a51c713e5dfb2a1f
-          - subnet-0d5e75a7df1adbf44
+          - subnet-078d73d2a5d259f32
+          - subnet-033a7367d825855ea
+          - subnet-0fa565e12ea171c18
       Environment:
         Variables:
           DB_NAME: shift
@@ -181,10 +181,10 @@ Resources:
         SecurityGroupIds:
           - sg-0d2984c17634f9cd2
         SubnetIds:
-          - subnet-099fc423f46e0ffc8
-          - subnet-078d73d2a5d259f32
           - subnet-0a51c713e5dfb2a1f
-          - subnet-0d5e75a7df1adbf44
+          - subnet-078d73d2a5d259f32
+          - subnet-033a7367d825855ea
+          - subnet-0fa565e12ea171c18
       Environment:
         Variables:
           DB_NAME: shift
@@ -214,10 +214,10 @@ Resources:
         SecurityGroupIds:
           - sg-0d2984c17634f9cd2
         SubnetIds:
-          - subnet-099fc423f46e0ffc8
-          - subnet-078d73d2a5d259f32
           - subnet-0a51c713e5dfb2a1f
-          - subnet-0d5e75a7df1adbf44
+          - subnet-078d73d2a5d259f32
+          - subnet-033a7367d825855ea
+          - subnet-0fa565e12ea171c18
       Environment:
         Variables:
           DB_NAME: shift
