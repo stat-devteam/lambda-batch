@@ -126,7 +126,7 @@ exports.handler = async(event) => {
                 "Content-Type": "application/json"
             }
             const jsonRpcAuth = {
-                username: kasInfo.accessKeyId,
+                username: secretValue.kas_access_key,
                 password: secretValue.kas_secret_access_key,
             }
             const jsonRpcBody = { "jsonrpc": "2.0", "method": "klay_getBalance", "params": [userKlaytnAddress, "latest"], "id": 1 }

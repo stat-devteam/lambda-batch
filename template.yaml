@@ -12,6 +12,7 @@ Resources:
       MemorySize: 128
       Timeout: 30
       Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSSMRole'
+      AutoPublishAlias: live
       Events:
         Schedule1:
           Type: Schedule
@@ -46,6 +47,7 @@ Resources:
       MemorySize: 128
       Timeout: 29
       Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSCogSMRole'
+      AutoPublishAlias: live
       VpcConfig:
         SecurityGroupIds:
           - sg-0e2bd8387180359c9
@@ -74,6 +76,7 @@ Resources:
       MemorySize: 128
       Timeout: 30
       Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSSMRole'
+      AutoPublishAlias: live
       Events:
         Schedule1:
           Type: Schedule
@@ -108,6 +111,7 @@ Resources:
       MemorySize: 128
       Timeout: 29
       Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSCogSMRole'
+      AutoPublishAlias: live
       VpcConfig:
         SecurityGroupIds:
           - sg-0e2bd8387180359c9
@@ -136,6 +140,7 @@ Resources:
       MemorySize: 128
       Timeout: 30
       Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSSMRole'
+      AutoPublishAlias: live
       Events:
         Schedule1:
           Type: Schedule
@@ -169,6 +174,7 @@ Resources:
       MemorySize: 128
       Timeout: 30
       Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSSMRole'
+      AutoPublishAlias: live
       Events:
         Schedule1:
           Type: Schedule
@@ -202,6 +208,7 @@ Resources:
       MemorySize: 128
       Timeout: 30
       Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSSMRole'
+      AutoPublishAlias: live
       Events:
         Schedule1:
           Type: Schedule
