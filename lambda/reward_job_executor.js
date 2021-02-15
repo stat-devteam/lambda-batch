@@ -16,7 +16,7 @@ exports.handler = async(event) => {
     const connection = await dbHandler.connectRDS(process.env.DB_ENDPOINT, process.env.DB_PORT, process.env.DB_NAME, process.env.DB_USER)
     console.log('connection', connection)
 
-    const secretValue = await smHandler.getSecretValue(awsInfo.secretsManager.id);
+    const secretValue = await smHandler.getSecretValue(process.env.SM_ID);
     console.log('secretValue', secretValue)
 
     console.log('Received event:', JSON.stringify(event, null, 2));
