@@ -1,24 +1,23 @@
 "use strict";
 
 var AWS = require('aws-sdk');
-const dbHandler = require('../modules/util_rds.js');
+const dbPool = require('../modules/util_rds_pool.js');
 const dbQuery = require('../resource/sql.json');
 var axios = require("axios").default;
 const kasInfo = require('../resource/kas.json');
-const smHandler = require('../modules/util_SM.js');
+const smHandler = require('../modules/util_sm.js');
 const awsInfo = require('../resource/aws.json');
-var moment = require('moment-timezone');
 const BigNumber = require('bignumber.js');
+var moment = require('moment-timezone');
+var { InsertLogSeq } = require("../modules/utils_error.js");
 const { RequestServiceCallbackUrl } = require('../modules/util_callback.js');
 const { DelegatedCheck } = require('../modules/util_klaytn.js');
-var { InsertLogSeq } = require("../modules/utils_error.js");
 
 exports.handler = async(event) => {
 
-    const connection = await dbHandler.connectRDS(process.env.DB_ENDPOINT, process.env.DB_PORT, process.env.DB_NAME, process.env.DB_USER)
-    console.log('connection', connection)
+    const pool = await dbPool.getPool();
 
-    const secretValue = await smHandler.getSecretValue(awsInfo.secretsManager.id);
+    const secretValue = await smHandler.getSecretValue(process.env.SM_ID);
     console.log('secretValue', secretValue)
 
     console.log('Received event:', JSON.stringify(event, null, 2));
@@ -36,16 +35,8 @@ exports.handler = async(event) => {
             const initTxStatus = 'submit';
             const initJobStatus = 'processing';
 
-            var transferProcessingResult = await new Promise((resolve, reject) => {
-                connection.query(dbQuery.transfer_status_update.queryString, [initTxStatus, initJobStatus, transferSeq], function(error, results, fields) {
-                    if (error) throw error;
-                    console.log('transferProcessingResult results', results);
 
-                    resolve(results);
-                });
-            }).catch((error) => {
-                return JSON.stringify(error);
-            });
+            const [transferProcessingResult, f1] = await pool.query(dbQuery.transfer_status_update.queryString, [initTxStatus, initJobStatus, transferSeq]);
             console.log('transferProcessingResult', transferProcessingResult)
 
             // polling tx status check
@@ -105,16 +96,8 @@ exports.handler = async(event) => {
                 console.log('job_status', job_status)
                 const completeDate = moment(new Date()).tz('Asia/Seoul').format('YYYY-MM-DD HH:mm:ss');
 
-                var statusSuccessResult = await new Promise((resolve, reject) => {
-                    connection.query(dbQuery.transfer_status_fee_update.queryString, [newStatus, completeDate, job_status, newFee, transferSeq], function(error, results, fields) {
-                        if (error) throw error;
-                        console.log('statusSuccessResult results', results);
 
-                        resolve(results);
-                    });
-                }).catch((error) => {
-                    return JSON.stringify(error);
-                });
+                const [statusSuccessResult, f2] = await pool.query(dbQuery.transfer_status_fee_update.queryString, [newStatus, completeDate, job_status, newFee, transferSeq]);
 
                 if (txStatusResult.data.status === 'Committed' && Number.isInteger(serviceCallbackSeq)) {
                     //callback 있는 경우 리퀘스트 해줘야 한다.
@@ -134,16 +117,7 @@ exports.handler = async(event) => {
                 console.log('job_status', job_status)
                 const completeDate = moment(new Date()).tz('Asia/Seoul').format('YYYY-MM-DD HH:mm:ss');
 
-                var statusFailResult = await new Promise((resolve, reject) => {
-                    connection.query(dbQuery.transfer_status_fee_update.queryString, [newStatus, completeDate, job_status, newFee, transferSeq], function(error, results, fields) {
-                        if (error) throw error;
-                        console.log('statusFailResult results', results);
-
-                        resolve(results);
-                    });
-                }).catch((error) => {
-                    return { error: error }
-                });
+                const [statusFailResult, f3] = await pool.query(dbQuery.transfer_status_fee_update.queryString, [newStatus, completeDate, job_status, newFee, transferSeq]);
 
                 console.log('statusFailResult', statusFailResult)
 
@@ -156,16 +130,8 @@ exports.handler = async(event) => {
                 console.log('txStatusResult no data stats', txStatusResult)
                 let job_status = 'ready';
                 let job_fetched_dt = null;
-                var statusFailResult = await new Promise((resolve, reject) => {
-                    connection.query(dbQuery.transfer_job_status_retry_update.queryString, [job_status, job_fetched_dt, transferSeq], function(error, results, fields) {
-                        if (error) throw error;
-                        console.log('statusFailResult results', results);
-
-                        resolve(results);
-                    });
-                }).catch((error) => {
-                    return JSON.stringify(error);
-                });
+                const [statusRetryResult, f3] = await pool.query(dbQuery.transfer_job_status_retry_update.queryString, [job_status, job_fetched_dt, transferSeq]);
+                console.log('statusRetryResult', statusRetryResult)
             }
 
         }
@@ -175,17 +141,7 @@ exports.handler = async(event) => {
             let job_status = 'done';
             const completeDate = moment(new Date()).tz('Asia/Seoul').format('YYYY-MM-DD HH:mm:ss');
             const newFee = 0;
-            var statusFailResult = await new Promise((resolve, reject) => {
-                connection.query(dbQuery.transfer_status_fee_update.queryString, [newStatus, completeDate, job_status, newFee, transferSeq], function(error, results, fields) {
-                    if (error) throw error;
-                    console.log('statusSuccessResult results', results);
-
-                    resolve(results);
-                });
-            }).catch((error) => {
-                return JSON.stringify(error);
-            });
-
+            const [statusFailResult, f3] = await pool.query(dbQuery.transfer_status_fee_update.queryString, [newStatus, completeDate, job_status, newFee, transferSeq]);
             console.log('not exist txHash', statusFailResult)
             const logSeq = await InsertLogSeq('transfer', transferSeq, 'KAS', 10101, 'transfer row dont exist txHash');
             console.log('not exist txHash logSeq', logSeq)

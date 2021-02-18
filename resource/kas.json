@@ -1,6 +1,5 @@
 {
     "jsonRpcUrl" : "https://node-api.klaytnapi.com/v1/klaytn",
     "apiUrl" : "https://wallet-api.klaytnapi.com/v2/",
-    "xChainId" : 8217,
-    "accessKeyId" : "KASKM6ZF38FOXKAGDT63BCD7"
+    "xChainId" : 8217
 }
