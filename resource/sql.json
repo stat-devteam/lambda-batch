@@ -1,4 +1,14 @@
 {
+    "service_get" : {
+        "queryString": "SELECT * FROM service WHERE svc_num = ?",
+        "params": ["svc_num"],
+        "desc": "service get"
+    },
+    "reward_get_by_seq" : {
+         "queryString": "SELECT * FROM reward_queue WHERE rwd_q_seq = ?",
+        "params": ["rwd_q_seq"],
+        "desc": "reward_queue get"
+    },
     "reward_job_fetch_select": {
         "queryString": "SELECT * FROM reward_queue rq INNER JOIN link l ON l.mbr_id=rq.mbr_id AND l.mbr_grp_id=rq.mbr_grp_id WHERE rq.job_status='ready' AND (rq.reserve_dt IS NULL OR rq.reserve_dt<=NOW()) AND (rq.expire_dt IS NULL OR rq.expire_dt>=now()) LIMIT 100",
         "params": [],
@@ -75,6 +85,31 @@
         "params": ["tx_status", "job_status", "transferSeq"],
         "desc": "transfer update tx_status, job_status"
     },
+    "transfer_update_tx_job_fee_hash": {
+        "queryString" : "UPDATE transfer SET tx_status = ?, job_status =?, fee =?, tx_hash = ?, transfer_end_dt = now() WHERE transfer_seq = ?",
+        "params" :  ["tx_status","job_status", "fee","tx_hash","completeDate", "transferSeq"],
+        "desc" : "tx_status, job_status, fee update"
+    },
+    "transfer_update_tx_job_fee": {
+        "queryString" : "UPDATE transfer SET tx_status = ?, job_status =?, fee =?, transfer_end_dt = now() WHERE transfer_seq = ?",
+        "params" :  ["tx_status","job_status", "fee","completeDate", "transferSeq"],
+        "desc" : "tx_status, job_status, fee update"
+    },
+    "transfer_update_tx_job_hash": {
+        "queryString" : "UPDATE transfer SET tx_status = ?, job_status =?, tx_hash = ?, transfer_end_dt = now() WHERE transfer_seq = ?",
+        "params" :  ["tx_status","job_status","tx_hash","completeDate", "transferSeq"],
+        "desc" : "tx_status, job_status, fee update"
+    },
+    "transfer_update_tx_job": {
+        "queryString" : "UPDATE transfer SET tx_status = ?, job_status =?, transfer_end_dt = now() WHERE transfer_seq = ?",
+        "params" :  ["tx_status","job_status","completeDate", "transferSeq"],
+        "desc" : "tx_status, job_status, fee update"
+    },
+    "transfer_update_job": {
+        "queryString": "UPDATE transfer SET job_status = ? WHERE transfer_seq = ?",
+        "params": [ "job_status", "transferSeq"],
+        "desc": "transfer update job_status"
+    },
     "transfer_status_hash_update": {
         "queryString": "UPDATE transfer SET tx_status = ?, job_status = ?, tx_hash = ? WHERE transfer_seq = ?",
         "params": ["tx_status", "job_status", "tx_hash", "transferSeq"],
@@ -129,5 +164,15 @@
         "queryString" : "SELECT * FROM transfer WHERE rwd_q_seq = ?",
         "params" : ["rwd_q_seq"],
         "desc": "klay send 전에, 리워드 트랜스퍼 있는지 확인"
+    },
+    "reward_update_job" : {
+        "queryString" : "UPDATE reward_queue SET job_status = ? WHERE rwd_q_seq = ?",
+        "params" : ["job_status", "rwd_q_seq"],
+        "desc": "reward update job_status"
+    },
+    "bulk_transfer_update_success_count" : {
+        "queryString" : "UPDATE bulk_transfer SET success_count = success_count +1 WHERE bulk_seq= ?",
+         "params" : ["bulk_seq"],
+        "desc": "bulk_transfer update success_count+1"
     }
 }

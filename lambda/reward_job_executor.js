@@ -27,63 +27,65 @@ exports.handler = async(event) => {
         let data = JSON.parse(body);
         console.log('data', data)
 
-
         const linkNumber = data.link_num;
         const userKlaytnAddress = data.klip_address;
         const bigNumberAmount = new BigNumber(data.amount);
         const hexAmount = '0x' + bigNumberAmount.toString(16);
-
-        console.log('hexAmount', hexAmount)
         const serviceNumber = data.svc_num;
         const memoSeq = data.svc_memo_seq;
         const rewardQueId = data.rwd_q_seq;
         const serviceCallbackSeq = data.svc_callback_seq || null;
+        const memberGroupId = data.mbr_grp_id;
 
-        let hkKlaytnAddress = null;
-        console.log('hkKlaytnAddress', hkKlaytnAddress)
+        //[VALIDATION - HK Klaytn Account exist, service - membergroup match ]
+        const [hkAccountResult, f3] = await pool.query(dbQuery.check_hk_klayton.queryString, [serviceNumber]);
 
-        // get HK Klaytn Info
-        try {
-            const [hkAccountResult, f1] = await pool.query(dbQuery.check_hk_klayton.queryString, [serviceNumber]);
-            hkKlaytnAddress = hkAccountResult[0].address;
-            console.log('hkAccount', hkAccountResult[0].address);
-        }
-        catch (err) {
-            console.log('hkAccountResult error', err);
-            continue;
-        }
-
-        //Check Transfer Exist
-        let boolTransferExist = false;
-        try {
-            const [transferExistResult, f1] = await pool.query(dbQuery.transfer_get_by_rwd_q.queryString, [rewardQueId]);
-            boolTransferExist = (transferExistResult.length > 0);
-            console.log('transferExistResult', transferExistResult);
-        }
-        catch (err) {
-            console.log('transferExistResult error', err);
-
-            const [updateInvalidResult, f2] = await pool.query(dbQuery.reward_job_set_invalid_update.queryString, [rewardQueId]);
-            console.log('updateInvalidResult', updateInvalidResult);
-
-            const rewardLogSeq = await InsertLogSeq('reward', rewardQueId, 'SQL', 10201, err.message);
-            console.log('rewardLogSeq', rewardLogSeq);
-
-            continue;
+        let validationHK = true;
+        let validationService = true;
+        if (hkAccountResult.length == 0) {
+            console.log('[ERROR - HK Klaytn Account] 해당 서비스의 한경 클레이튼 정보가 없습니다.');
+            //[TASK] Update Invlid Reward Queue
+            const [updateRewardResult, f3] = await pool.query(dbQuery.reward_update_job.queryString, ['invalid', rewardQueId]);
+            console.log('[TASK - Update Reward Queue]', updateRewardResult)
+            //[TASK] Insert Log
+            const rewardLogSeq = await InsertLogSeq('reward', rewardQueId, 'SQL', 1011, '해당 서비스의 한경 클레이튼 정보가 없습니다.');
+            console.log('[TASK - Insert Log]', rewardLogSeq)
+            validationHK = false;
         }
 
-        if (boolTransferExist) {
-            console.log('Already Exist Transfer');
-            console.log('This Message Must to be Ignored')
+        const hkKlaytnAddress = hkAccountResult[0].address;
+        const hkXKrn = hkAccountResult[0].x_krn;
 
-            const [updateInvalidResult, f1] = await pool.query(dbQuery.reward_job_set_invalid_update.queryString, [rewardQueId]);
-            console.log('updateInvalidResult', updateInvalidResult)
-
-            const rewardLogSeq = await InsertLogSeq('reward', rewardQueId, 'SQL', 10301, 'Duplicate Request Reward Queue');
-            console.log('rewardLogSeq', rewardLogSeq)
+        const [serviceResult, f1] = await pool.query(dbQuery.service_get.queryString, [serviceNumber]);
+        const serviceMemberGroupId = serviceResult[0].mbr_grp_id;
+        if (serviceMemberGroupId !== memberGroupId) {
+            console.log('[ERROR - memberGroupMatch] 서비스의 memberGroupId와 입력받은 memberGroupId가 일치하지 않습니다.');
+            console.log('serviceMemberGroupId', serviceMemberGroupId);
+            console.log('memberGroupId', memberGroupId);
+            //[TASK] Update Invlid Reward Queue
+            const [updateRewardResult, f3] = await pool.query(dbQuery.reward_update_job.queryString, ['invalid', rewardQueId]);
+            console.log('[TASK - Update Reward Queue]', updateRewardResult)
+            //[TASK] Insert Log
+            const rewardLogSeq = await InsertLogSeq('reward', rewardQueId, 'SQL', 1016, '서비스의 memberGroupId와 입력받은 memberGroupId가 일치하지 않습니다.');
+            console.log('[TASK - Insert Log]', rewardLogSeq)
+            validationService = false;
         }
-        else {
-            // Get current Balance
+
+        //[TASK] Transfer Check
+        let transferExist = false;
+        const [transferExistResult, f4] = await pool.query(dbQuery.transfer_get_by_rwd_q.queryString, [rewardQueId]);
+        if (transferExistResult.length > 0) {
+            transferExist = true;
+        }
+
+        if (transferExist) {
+            //알 수 없는 이유로 메세지 큐가 여러번 수행될 경우, 중복해서 Send Klay 요청하는 것을 방지하기 위한 로직
+            console.log('[ERROR] Already Transfer Exist')
+        }
+
+        if (validationHK && validationService && !transferExist) {
+            //요청 수행할 수 있는 for loop condition
+            // [sub] get Current Balance
             const jsonRpcHeader = {
                 'x-chain-id': kasInfo.xChainId,
                 "Content-Type": "application/json"
@@ -94,30 +96,26 @@ exports.handler = async(event) => {
             }
             const jsonRpcBody = { "jsonrpc": "2.0", "method": "klay_getBalance", "params": [userKlaytnAddress, "latest"], "id": 1 }
 
-            const balanceJsonRpcResponse = await axios
+            const jsonRpcResponse = await axios
                 .post(kasInfo.jsonRpcUrl, jsonRpcBody, {
                     headers: jsonRpcHeader,
                     auth: jsonRpcAuth
                 })
                 .catch((err) => {
-                    console.log('jsonrpc balance fali', err);
-
+                    console.log('jsonrpc send fali', err);
                     let errorBody = {
                         code: 1023,
                         message: '[KAS] 잔액 조회 에러',
                     };
-
-                    //status fail insert  해주긴 해야함
-                    return { error: errorBody }
+                    console.log('[400] - (1023) 잔액 조회 에러');
+                    console.log('jsonRpcResponse', jsonRpcResponse);
                 });
-            console.log('balanceJsonRpcResponse', balanceJsonRpcResponse);
 
-            //result 0x1212kjsdvsdfo
-            const currentBalance = balanceJsonRpcResponse.data.result ? parseInt(balanceJsonRpcResponse.data.result) : null;
-            console.log('currentBalance [to User]', currentBalance)
+            console.log('[KAS] jsonRpcResponse for balance', jsonRpcResponse);
+            const currentBalance = jsonRpcResponse.data.result ? new BigNumber(jsonRpcResponse.data.result).toString(10) : null;
 
 
-            // insert before_submit transfer
+            //[TASK]  insert before_submit transfer
             const txStatus = 'before_submit';
             const jobStatus = 'ready';
             const txHash = null;
@@ -127,24 +125,21 @@ exports.handler = async(event) => {
             const now = moment(new Date()).tz('Asia/Seoul').format('YYYY-MM-DD HH:mm:ss');
             const transferEndDate = null;
 
-            const [insertResult, f1] = await pool.query(dbQuery.insert_transfer_with_rwd_q.queryString, [transferType, serviceNumber, linkNumber, pebAmount, fee, now, transferEndDate, txHash, txStatus, jobStatus, null, serviceCallbackSeq, memoSeq, currentBalance, rewardQueId]);
+            let transferSeq = null;
 
-            const transferSeq = insertResult.insertId;
-            console.log('transferSeq', transferSeq)
-
-            if (transferSeq) {
-                try {
-                    const [transferSeqSetUpdateResult, f2] = await pool.query(dbQuery.reward_transfer_seq_update.queryString, [transferSeq, rewardQueId]);
-                    console.log('transferSeqSetUpdateResult', transferSeqSetUpdateResult)
-                }
-                catch (err) {
-                    console.log('transferSeqSetUpdateResult error', err);
-                }
+            try {
+                const [insertResult, f1] = await pool.query(dbQuery.insert_transfer_with_rwd_q.queryString, [transferType, serviceNumber, linkNumber, pebAmount, fee, now, transferEndDate, txHash, txStatus, jobStatus, null, serviceCallbackSeq, memoSeq, currentBalance, rewardQueId]);
+                transferSeq = insertResult.insertId;
+            }
+            catch (err) {
+                console.log('[ERROR - Insert Transfer]', err.message)
             }
 
+            console.log('[TASK - Insert Transfer] transferSeq', transferSeq)
+            const [transferSeqSetUpdateResult, f2] = await pool.query(dbQuery.reward_transfer_seq_update.queryString, [transferSeq, rewardQueId]);
+            console.log('[TASK - Update Reward] set transferSeq', transferSeqSetUpdateResult)
 
-            // Klay Transfer
-            //result transactionHash
+            //[TASK] Klay Transfer
             const axiosHeader = {
                 'Authorization': secretValue.kas_authorization,
                 'x-krn': secretValue.kas_x_krn,
@@ -167,15 +162,12 @@ exports.handler = async(event) => {
                     headers: axiosHeader,
                 })
                 .catch((err) => {
-                    console.log('klay send fali', err.response);
                     return { error: err.response }
                 });
-            console.log('sendResponse', sendResponse);
 
             if (sendResponse.error) {
-                //status fail insert  해주긴 해야함
 
-                console.log('sendResponse.error', sendResponse.error)
+                console.log('[SEND KLAY ERROR]', sendResponse.error);
                 // 전송 실패 이슈
                 //err.data.code === 1065001
                 //err.data.message
@@ -193,42 +185,55 @@ exports.handler = async(event) => {
                 ///err.data.message
                 // cannot be empty or zero value; to
                 // cannot be empty or zero value; input
+                const [updateInvalidResult, f1] = await pool.query(dbQuery.reward_job_fetch_invalid_update.queryString, [transferSeq, rewardQueId]);
+                console.log('[TASK - Update Reward] Invlid', updateInvalidResult);
+                //send response eror일 경우, transaction 자체를 submit 할수가 없었던 요청.
+                const completeDate = moment(new Date()).tz('Asia/Seoul').format('YYYY-MM-DD HH:mm:ss');
+                const newFee = 0;
+                const [statusFailResult, f2] = await pool.query(dbQuery.transfer_status_fee_update.queryString, ['fail', completeDate, 'done', null, transferSeq]);
+                console.log('[TASK - Update Transfer] Fail', updateInvalidResult);
 
                 let code = sendResponse.error.data.code;
                 let message = sendResponse.error.data.message;
-                console.log('code', code)
-                console.log('message', message)
-
-                const [updateInvalidResult, f2] = await pool.query(dbQuery.reward_job_fetch_invalid_update.queryString, [transferSeq, rewardQueId]);
-                console.log('updateInvalidResult', updateInvalidResult)
-
-                //send response eror일 경우, transaction 자체를 submit 할수가 없었던 요청.
-                let newStatus = 'fail';
-                let job_status = 'done';
-                const completeDate = moment(new Date()).tz('Asia/Seoul').format('YYYY-MM-DD HH:mm:ss');
-                const newFee = 0;
-
-                const [statusFailResult, f3] = await pool.query(dbQuery.transfer_status_fee_update.queryString, [newStatus, completeDate, job_status, null, transferSeq]);
-                console.log('statusFailResult', statusFailResult)
-
+                console.log('[code]', code)
+                console.log('[message]', message)
                 const rewardLogSeq = await InsertLogSeq('reward', rewardQueId, 'KAS', code, message);
                 const transferLogSeq = await InsertLogSeq('transfer', transferSeq, 'KAS', code, message);
                 console.log('rewardLogSeq', rewardLogSeq);
                 console.log('transferLogSeq', transferLogSeq);
-
             }
             else {
+                console.log('[SEND KLAY SUCCESS] sendResponse', sendResponse.data);
+
                 const sendStatus = sendResponse.data.status;
                 console.log('sendStatus', sendStatus)
-                const updateTxStatus = 'submit';
-                const updateJobStatus = 'ready';
+                let updateTxStatus = '';
+                let updateJobStatus = '';
+
+                if (sendStatus === 'Submitted') {
+                    updateTxStatus = 'submit';
+                    updateJobStatus = 'ready';
+
+                }
+                else if (sendStatus === 'Pending') {
+                    updateTxStatus = 'pending';
+                    updateJobStatus = 'ready';
+
+                }
+                else {
+                    // KAS Result ERROR
+                    updateTxStatus = 'unknown';
+                    updateJobStatus = 'done';
+
+                }
                 const updateTxHash = sendResponse.data.transactionHash;
 
-
-                // "params": ["tx_status", "job_status", "tx_hash", "transferSeq"],
                 try {
                     const [updateTransferStatusResult, f4] = await pool.query(dbQuery.transfer_status_hash_update.queryString, [updateTxStatus, updateJobStatus, updateTxHash, transferSeq]);
-                    console.log('updateTransferStatusResult', updateTransferStatusResult)
+                    console.log('[TASK - Update Transfer] updateTxStatus : ', updateTxStatus)
+                    console.log('[TASK - Update Transfer] updateJobStatus : ', updateJobStatus)
+                    console.log('[TASK - Update Transfer] updateTxHash : ', updateTxHash)
+                    console.log('[TASK - Update Transfer] updateTransferStatusResult', updateTransferStatusResult)
                 }
                 catch (err) {
                     console.log('updateTransferStatusResult error', err);
@@ -236,7 +241,7 @@ exports.handler = async(event) => {
 
                 try {
                     const [rewardQueSuccessUpdateResult, f4] = await pool.query(dbQuery.reward_job_fetch_success_update.queryString, [rewardQueId]);
-                    console.log('rewardQueSuccessUpdateResult', rewardQueSuccessUpdateResult)
+                    console.log('[TASK - Update Reward] set job_status = done', rewardQueSuccessUpdateResult)
                 }
                 catch (err) {
                     console.log('rewardQueSuccessUpdateResult error', err);

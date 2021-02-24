@@ -25,126 +25,133 @@ exports.handler = async(event) => {
         console.log('SQS message %s: %j', messageId, body);
 
         let data = JSON.parse(body);
-        let txHash = data.tx_hash || null;
+        console.log('[VALUE] data', data)
+        let txHash = data.tx_hash;
         let transferSeq = data.transfer_seq;
         const serviceCallbackSeq = data.svc_callback_seq || null;
+        const rewardQueueSequence = data.rwd_q_seq;
 
-        if (txHash && transferSeq) {
+        console.log('[VALUE] transferSeq : ', transferSeq);
+        console.log('[VALUE] tx_hash : ', txHash);
+        console.log('[VALUE] serviceCallbackSeq : ', serviceCallbackSeq);
+        console.log('[VALUE] rewardQueueSequence : ', rewardQueueSequence);
 
-            //processing update 처리 로직
-            const initTxStatus = 'submit';
-            const initJobStatus = 'processing';
+        //[TASK] Update Transfer Table
+        const [updateResult, f1] = await pool.query(dbQuery.transfer_update_job.queryString, ['processing', transferSeq]);
+
+        //[TASK] CHECK TRANSACTION [KAS]
+        const satusCheckUrl = kasInfo.apiUrl + 'tx/' + txHash;
+        const checkHeader = {
+            'Authorization': secretValue.kas_authorization,
+            'Content-Type': 'application/json',
+            'x-chain-id': kasInfo.xChainId,
+        };
+
+        const txStatusResult = await axios
+            .get(satusCheckUrl, {
+                headers: checkHeader,
+            })
+            .catch((err) => {
+                console.log('[KAS] Check Transaction ERROR', err.response);
+                return { error: err.response }
+            });
 
 
-            const [transferProcessingResult, f1] = await pool.query(dbQuery.transfer_status_update.queryString, [initTxStatus, initJobStatus, transferSeq]);
-            console.log('transferProcessingResult', transferProcessingResult)
+        if (txStatusResult.error) {
+            //[TASK] Update Transfer Table
+            let code = txStatusResult.error.data.code;
+            let message = txStatusResult.error.data.message;
+            const [updateUnknownResult, f1] = await pool.query(dbQuery.transfer_update_tx_job.queryString, ['unknown', 'done', transferSeq]);
+            console.log('[TASK - Update unkown]', updateUnknownResult);
+            const logSeq = await InsertLogSeq('transfer', transferSeq, 'KAS', code, message);
+            console.log('[TASK - code]', code);
+            console.log('[TASK - message]', message);
+            console.log('[TASK - ERRORLOG]', logSeq);
 
-            // polling tx status check
-            const satusCheckUrl = kasInfo.apiUrl + 'tx/' + txHash;
-            const checkHeader = {
-                'Authorization': secretValue.kas_authorization,
-                'Content-Type': 'application/json',
-                'x-chain-id': kasInfo.xChainId,
-            };
+        }
+        else if (txStatusResult.data && txStatusResult.data.status) {
+            let txStatus = txStatusResult.data.status;
+            console.log('[KAS] Check Transaction Result', txStatusResult);
+            switch (txStatus) {
+                case 'Committed':
+                    {
+                        let isDelegated = DelegatedCheck(txStatusResult.data);
+                        let newFee = null;
+                        if (isDelegated) {
+                            newFee = 0;
+                        }
+                        else {
+                            newFee = new BigNumber(txStatusResult.data.gasPrice * txStatusResult.data.gasUsed).toString(10);
+                        }
+                        //[TASK - Update Transfer Table]
+                        const [updateResult, f5] = await pool.query(dbQuery.transfer_update_tx_job_fee.queryString, ['success', 'done', newFee, transferSeq]);
+                        console.log('[Committed] Update Transfer Table', updateResult);
+                        //[TASK - ServiceCallback]
+                        if (serviceCallbackSeq) {
+                            const callbackResult = await RequestServiceCallbackUrl(serviceCallbackSeq, `tansferSequence=${transferSeq}`);
+                            console.log('[Committed] callbackResult', callbackResult)
+                        }
+                        //[TASK - Check Bulk]
+                        if (rewardQueueSequence) {
+                            const [rewardQueueResult, f5] = await pool.query(dbQuery.reward_get_by_seq.queryString, [rewardQueueSequence]);
+                            if (rewardQueueResult.length > 0 && rewardQueueResult[0].bulk_seq) {
+                                let bulkSeq = rewardQueueResult[0].bulk_seq;
+                                console.log('[TASK - Check Bulk] bulkSeq', bulkSeq);
+                                const [updateResult, f1] = await pool.query(dbQuery.bulk_transfer_update_success_count.queryString, [bulkSeq]);
+                                console.log('[TASK - Check Bulk] result', updateResult);
 
-            const txStatusResult = await axios
-                .get(satusCheckUrl, {
-                    headers: checkHeader,
-                })
-                .catch((err) => {
-                    console.log('txStatusResult err', err);
-                    return { error: err.response }
-                });
+                            }
+                        }
 
-            let newFee = null;
-            console.log('txStatusResult', txStatusResult)
-            if (txStatusResult.data && txStatusResult.data.status) {
-                let newStatus = 'success';
-                let job_status = 'done';
 
-                // fee setup
-                if (txStatusResult.data.status === 'Committed') {
-                    let isDelegated = DelegatedCheck(txStatusResult.data);
-                    console.log('isDelegated', isDelegated)
-                    if (isDelegated) {
-                        newFee = 0;
+                        break;
                     }
-                    else {
-                        newFee = new BigNumber(txStatusResult.data.gasPrice * txStatusResult.data.gasUsed).toString(10);
+                case 'CommitError':
+                    {
+                        const [updateResult, f5] = await pool.query(dbQuery.transfer_update_tx_job.queryString, ['fail', 'done', transferSeq]);
+                        console.log('[CommitError] updateResult', updateResult);
+                        let code = txStatusResult.data.code || '';
+                        let message = txStatusResult.data.message || '';
+                        const logSeq = await InsertLogSeq('transfer', transferSeq, 'KAS', code, message);
+                        console.log('[TASK - code]', code);
+                        console.log('[TASK - message]', message);
+                        console.log('[TASK - ERRORLOG]', logSeq);
+                        break;
                     }
-                }
-                else if (txStatusResult.data.status === 'Submitted') {
-                    newStatus = 'submit';
-                    job_status = 'ready';
-
-                }
-                else if (txStatusResult.data.status === 'Pending') {
-                    newStatus = 'pending';
-                    job_status = 'ready';
-                }
-                else if (txStatusResult.data.status === 'CommitError') {
-                    newStatus = 'fail';
-
-                }
-                else {
-                    newStatus = 'unknown';
-                    console.log('else txStatusResult status', txStatusResult.data.status);
-                }
-
-
-                console.log('newStatus', newStatus)
-                console.log('job_status', job_status)
-                const completeDate = moment(new Date()).tz('Asia/Seoul').format('YYYY-MM-DD HH:mm:ss');
-
-
-                const [statusSuccessResult, f2] = await pool.query(dbQuery.transfer_status_fee_update.queryString, [newStatus, completeDate, job_status, newFee, transferSeq]);
-
-                if (txStatusResult.data.status === 'Committed' && Number.isInteger(serviceCallbackSeq)) {
-                    //callback 있는 경우 리퀘스트 해줘야 한다.
-                    const callbackResult = await RequestServiceCallbackUrl(serviceCallbackSeq, `tansferSequence=${transferSeq}`);
-                    console.log('callbackResult', callbackResult)
-                }
-
+                case 'Pending':
+                    {
+                        const [updateResult, f5] = await pool.query(dbQuery.transfer_update_tx_job.queryString, ['pending', 'ready', transferSeq]);
+                        console.log('[Pending] updateResult', updateResult);
+                        console.log('[Pending] Response Data', txStatusResult.data);
+                        break;
+                    }
+                case 'Submitted':
+                    {
+                        const [updateResult, f5] = await pool.query(dbQuery.transfer_update_tx_job.queryString, ['submit', 'ready', transferSeq]);
+                        console.log('[Submitted] updateResult', updateResult);
+                        console.log('[Submitted] Response Data', txStatusResult.data);
+                        break;
+                    }
+                default:
+                    {
+                        // KAS Result Status가 비정상일 경우
+                        const [updateResult, f1] = await pool.query(dbQuery.transfer_update_tx_job.queryString, ['unknown', 'done', transferSeq]);
+                        console.log('[Unknown] updateResult', updateResult);
+                        console.log('[Unknown] Response Data', txStatusResult.data);
+                        break;
+                    }
             }
-            else if (txStatusResult.error) {
-                console.log('error txStatusResult', txStatusResult.error)
-                let code = txStatusResult.error.data.code;
-                let message = txStatusResult.error.data.message;
-                let newStatus = 'fail';
-                let job_status = 'done';
 
-                console.log('newStatus', newStatus)
-                console.log('job_status', job_status)
-                const completeDate = moment(new Date()).tz('Asia/Seoul').format('YYYY-MM-DD HH:mm:ss');
-
-                const [statusFailResult, f3] = await pool.query(dbQuery.transfer_status_fee_update.queryString, [newStatus, completeDate, job_status, newFee, transferSeq]);
-
-                console.log('statusFailResult', statusFailResult)
-
-                const logSeq = await InsertLogSeq('transfer', transferSeq, 'KAS', code, message);
-                console.log('logSeq', logSeq);
-
-            }
-            else {
-                //일어나면 안되지만 일어날 경우, ready로 셋팅해서 다시 fetch를 수행한다.
-                console.log('txStatusResult no data stats', txStatusResult)
-                let job_status = 'ready';
-                let job_fetched_dt = null;
-                const [statusRetryResult, f3] = await pool.query(dbQuery.transfer_job_status_retry_update.queryString, [job_status, job_fetched_dt, transferSeq]);
-                console.log('statusRetryResult', statusRetryResult)
-            }
 
         }
         else {
-            //트랜잭션 해쉬가 없기 때문에, 애초에 수행할 수 없었던 요청.
-            let newStatus = 'fail';
+            // KAS Result가 비정상일 경우
+            let newStatus = 'unknown';
             let job_status = 'done';
-            const completeDate = moment(new Date()).tz('Asia/Seoul').format('YYYY-MM-DD HH:mm:ss');
-            const newFee = 0;
-            const [statusFailResult, f3] = await pool.query(dbQuery.transfer_status_fee_update.queryString, [newStatus, completeDate, job_status, newFee, transferSeq]);
-            console.log('not exist txHash', statusFailResult)
-            const logSeq = await InsertLogSeq('transfer', transferSeq, 'KAS', 10101, 'transfer row dont exist txHash');
-            console.log('not exist txHash logSeq', logSeq)
+            const [updateUnknownResult, f1] = await pool.query(dbQuery.transfer_update_tx_job.queryString, [newStatus, job_status, transferSeq]);
+            console.log('[KAS] Response Data Dont Exist', txStatusResult.data);
+            console.log('[Unknown] updateUnknownResult', updateUnknownResult);
+
         }
     }
 
