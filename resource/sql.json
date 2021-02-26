@@ -126,7 +126,7 @@
         "desc": "transfer update status and job_fetched_dt for retry"
     },
     "check_hk_klayton" : {
-        "queryString": "SELECT * FROM hankyung_klaytn_account WHERE accnt_id = (SELECT accnt_id FROM service_group WHERE svc_grp_id = (SELECT svc_grp_id FROM service WHERE svc_num = ? ))",
+        "queryString": "SELECT * FROM hankyung_klaytn_account WHERE accnt_id = (SELECT accnt_id FROM service WHERE svc_num = ? )",
         "params": ["serviceNumber"],
         "desc": "해당 serviceNumber 한경 클레이튼 계정 확인"
     },
