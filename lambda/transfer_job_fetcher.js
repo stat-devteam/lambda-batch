@@ -8,6 +8,7 @@ const dbQuery = require('../resource/sql.json');
 exports.handler = async function(event) {
 
     try {
+
         const pool = await dbPool.getPool();
         const [queryResult, f1] = await pool.query(dbQuery.transfer_job_fetch_select.queryString);
 
