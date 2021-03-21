@@ -2,7 +2,6 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: 'AWS::Serverless-2016-10-31'
 Description: An AWS Serverless Specification template describing your function.
 Resources:
-
   RewardJobFetcher:
     Type: 'AWS::Serverless::Function'
     Properties:
@@ -13,11 +12,6 @@ Resources:
       Timeout: 30
       Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSSMRole'
       AutoPublishAlias: live
-      Events:
-        Schedule1:
-          Type: Schedule
-          Properties:
-            Schedule: rate(1 minute)
       VpcConfig:
         SecurityGroupIds:
           - sg-0e2bd8387180359c9
@@ -37,6 +31,7 @@ Resources:
           REGION: ap-northeast-2
           PLAN_ID : was7u8
           SM_ID : shift/product/kasinfo
+          PARAMETER_STORE_VALUE : 'dev_maintenance'
 
   RewardJobExecutor:
     Type: 'AWS::Serverless::Function'
@@ -66,6 +61,7 @@ Resources:
           REGION: ap-northeast-2
           PLAN_ID : was7u8
           SM_ID : shift/product/kasinfo
+          PARAMETER_STORE_VALUE : 'dev_maintenance'
 
   TransferJobFetcher:
     Type: 'AWS::Serverless::Function'
@@ -77,11 +73,6 @@ Resources:
       Timeout: 30
       Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSSMRole'
       AutoPublishAlias: live
-      Events:
-        Schedule1:
-          Type: Schedule
-          Properties:
-            Schedule: rate(1 minute)
       VpcConfig:
         SecurityGroupIds:
           - sg-0e2bd8387180359c9
@@ -101,6 +92,7 @@ Resources:
           REGION: ap-northeast-2
           PLAN_ID : was7u8
           SM_ID : shift/product/kasinfo
+          PARAMETER_STORE_VALUE : 'dev_maintenance'
 
   TransferJobExecutor:
     Type: 'AWS::Serverless::Function'
@@ -130,7 +122,7 @@ Resources:
           REGION: ap-northeast-2
           PLAN_ID : was7u8
           SM_ID : shift/product/kasinfo
-
+          PARAMETER_STORE_VALUE : 'dev_maintenance'
   RewardCleaner:
     Type: 'AWS::Serverless::Function'
     Properties:
@@ -141,11 +133,6 @@ Resources:
       Timeout: 30
       Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSSMRole'
       AutoPublishAlias: live
-      Events:
-        Schedule1:
-          Type: Schedule
-          Properties:
-            Schedule: rate(1 minute)
       VpcConfig:
         SecurityGroupIds:
           - sg-0e2bd8387180359c9
@@ -164,6 +151,7 @@ Resources:
           REGION: ap-northeast-2
           PLAN_ID : was7u8
           SM_ID : shift/product/kasinfo
+          PARAMETER_STORE_VALUE : 'dev_maintenance'
 
   TransferCleaner:
     Type: 'AWS::Serverless::Function'
@@ -175,11 +163,6 @@ Resources:
       Timeout: 30
       Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSSMRole'
       AutoPublishAlias: live
-      Events:
-        Schedule1:
-          Type: Schedule
-          Properties:
-            Schedule: rate(1 minute)
       VpcConfig:
         SecurityGroupIds:
           - sg-0e2bd8387180359c9
@@ -198,6 +181,7 @@ Resources:
           REGION: ap-northeast-2
           PLAN_ID : was7u8
           SM_ID : shift/product/kasinfo
+          PARAMETER_STORE_VALUE : 'dev_maintenance'
 
   TempLinkCleaner:
     Type: 'AWS::Serverless::Function'
@@ -209,11 +193,6 @@ Resources:
       Timeout: 30
       Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSSMRole'
       AutoPublishAlias: live
-      Events:
-        Schedule1:
-          Type: Schedule
-          Properties:
-            Schedule: rate(1 day)
       VpcConfig:
         SecurityGroupIds:
           - sg-0e2bd8387180359c9
@@ -232,4 +211,64 @@ Resources:
           REGION: ap-northeast-2
           PLAN_ID : was7u8
           SM_ID : shift/product/kasinfo
+          PARAMETER_STORE_VALUE : 'dev_maintenance'
 
+  TransferStats:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: lambda/transfer_stats.handler
+      Runtime: nodejs12.x
+      Description: '전송 기록 통계를 위한 배치 작업'
+      MemorySize: 128
+      Timeout: 30
+      Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSSMRole'
+      AutoPublishAlias: live
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-0e2bd8387180359c9
+        SubnetIds:
+          - subnet-0732d7b0216fbe2f7
+          - subnet-078099e1972636375
+          - subnet-08a164a0080a216c4
+          - subnet-00c6531721f8d485a
+      Environment:
+        Variables:
+          DB_NAME: shift
+          DB_PORT: '3306'
+          DB_USER: coredot
+          DB_ENDPOINT: shift-dev-aurora-cluster.cluster-c89v5jzuome9.ap-northeast-2.rds.amazonaws.com
+          DB_SM_ID : shift/product/aurora/coredot
+          REGION: ap-northeast-2
+          PLAN_ID : was7u8
+          SM_ID : shift/product/kasinfo
+          PARAMETER_STORE_VALUE : 'dev_maintenance'
+
+  LinkStats:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: lambda/link_stats.handler
+      Runtime: nodejs12.x
+      Description: '링크 기록 통계를 위한 배치 작업'
+      MemorySize: 128
+      Timeout: 30
+      Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSSMRole'
+      AutoPublishAlias: live
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-0e2bd8387180359c9
+        SubnetIds:
+          - subnet-0732d7b0216fbe2f7
+          - subnet-078099e1972636375
+          - subnet-08a164a0080a216c4
+          - subnet-00c6531721f8d485a
+      Environment:
+        Variables:
+          DB_NAME: shift
+          DB_PORT: '3306'
+          DB_USER: coredot
+          DB_ENDPOINT: shift-dev-aurora-cluster.cluster-c89v5jzuome9.ap-northeast-2.rds.amazonaws.com
+          DB_SM_ID : shift/product/aurora/coredot
+          REGION: ap-northeast-2
+          PLAN_ID : was7u8
+          SM_ID : shift/product/kasinfo
+          PARAMETER_STORE_VALUE : 'dev_maintenance'

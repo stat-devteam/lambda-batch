@@ -19,8 +19,7 @@ exports.handler = async function(event) {
     else {
         try {
             const pool = await dbPool.getPool();
-            await pool.query(dbQuery.reward_queue_expired_clean_update.queryString);
-            await pool.query(dbQuery.reward_queue_fetched_clean_update.queryString);
+            await pool.query(dbQuery.transfer_stats_daily_insert.queryString);
         }
         catch (err) {
             console.log(err);
