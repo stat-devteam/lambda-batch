@@ -16,19 +16,12 @@ Resources:
       Timeout: 30
       Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSSMRole'
       AutoPublishAlias: live
-      Events:
-        Schedule1:
-          Type: Schedule
-          Properties:
-            Schedule: rate(1 minute)
       VpcConfig:
         SecurityGroupIds:
           - sg-0d2984c17634f9cd2
         SubnetIds:
           - subnet-0a51c713e5dfb2a1f
           - subnet-078d73d2a5d259f32
-          - subnet-033a7367d825855ea
-          - subnet-0fa565e12ea171c18
       Environment:
         Variables:
           QUEUE_URL: https://sqs.ap-northeast-2.amazonaws.com/180677353921/hk_shift_real_sqs_reward.fifo
@@ -40,6 +33,7 @@ Resources:
           REGION: ap-northeast-2
           PLAN_ID : 0rceel
           SM_ID : shift/release/kasinfo
+          PARAMETER_STORE_VALUE : 'release_maintenance'
 
   RewardJobExecutor:
     Type: 'AWS::Serverless::Function'
@@ -57,8 +51,6 @@ Resources:
         SubnetIds:
           - subnet-0a51c713e5dfb2a1f
           - subnet-078d73d2a5d259f32
-          - subnet-033a7367d825855ea
-          - subnet-0fa565e12ea171c18
       Environment:
         Variables:
           DB_NAME: shift
@@ -69,6 +61,7 @@ Resources:
           REGION: ap-northeast-2
           PLAN_ID : 0rceel
           SM_ID : shift/release/kasinfo
+          PARAMETER_STORE_VALUE : 'release_maintenance'
 
   TransferJobFetcher:
     Type: 'AWS::Serverless::Function'
@@ -80,19 +73,12 @@ Resources:
       Timeout: 30
       Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSSMRole'
       AutoPublishAlias: live
-      Events:
-        Schedule1:
-          Type: Schedule
-          Properties:
-            Schedule: rate(1 minute)
       VpcConfig:
         SecurityGroupIds:
           - sg-0d2984c17634f9cd2
         SubnetIds:
           - subnet-0a51c713e5dfb2a1f
           - subnet-078d73d2a5d259f32
-          - subnet-033a7367d825855ea
-          - subnet-0fa565e12ea171c18
       Environment:
         Variables:
           QUEUE_URL: https://sqs.ap-northeast-2.amazonaws.com/180677353921/hk_shift_real_sqs_transfer.fifo
@@ -104,6 +90,7 @@ Resources:
           REGION: ap-northeast-2
           PLAN_ID : 0rceel
           SM_ID : shift/release/kasinfo
+          PARAMETER_STORE_VALUE : 'release_maintenance'
 
   TransferJobExecutor:
     Type: 'AWS::Serverless::Function'
@@ -121,8 +108,6 @@ Resources:
         SubnetIds:
           - subnet-0a51c713e5dfb2a1f
           - subnet-078d73d2a5d259f32
-          - subnet-033a7367d825855ea
-          - subnet-0fa565e12ea171c18
       Environment:
         Variables:
           DB_NAME: shift
@@ -133,6 +118,7 @@ Resources:
           REGION: ap-northeast-2
           PLAN_ID : 0rceel
           SM_ID : shift/release/kasinfo
+          PARAMETER_STORE_VALUE : 'release_maintenance'
 
   RewardCleaner:
     Type: 'AWS::Serverless::Function'
@@ -144,19 +130,12 @@ Resources:
       Timeout: 30
       Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSSMRole'
       AutoPublishAlias: live
-      Events:
-        Schedule1:
-          Type: Schedule
-          Properties:
-            Schedule: rate(1 minute)
       VpcConfig:
         SecurityGroupIds:
           - sg-0d2984c17634f9cd2
         SubnetIds:
           - subnet-0a51c713e5dfb2a1f
           - subnet-078d73d2a5d259f32
-          - subnet-033a7367d825855ea
-          - subnet-0fa565e12ea171c18
       Environment:
         Variables:
           DB_NAME: shift
@@ -167,6 +146,7 @@ Resources:
           REGION: ap-northeast-2
           PLAN_ID : 0rceel
           SM_ID : shift/release/kasinfo
+          PARAMETER_STORE_VALUE : 'release_maintenance'
 
   TransferCleaner:
     Type: 'AWS::Serverless::Function'
@@ -178,19 +158,12 @@ Resources:
       Timeout: 30
       Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSSMRole'
       AutoPublishAlias: live
-      Events:
-        Schedule1:
-          Type: Schedule
-          Properties:
-            Schedule: rate(1 minute)
       VpcConfig:
         SecurityGroupIds:
           - sg-0d2984c17634f9cd2
         SubnetIds:
           - subnet-0a51c713e5dfb2a1f
           - subnet-078d73d2a5d259f32
-          - subnet-033a7367d825855ea
-          - subnet-0fa565e12ea171c18
       Environment:
         Variables:
           DB_NAME: shift
@@ -201,6 +174,7 @@ Resources:
           REGION: ap-northeast-2
           PLAN_ID : 0rceel
           SM_ID : shift/release/kasinfo
+          PARAMETER_STORE_VALUE : 'release_maintenance'
 
   TempLinkCleaner:
     Type: 'AWS::Serverless::Function'
@@ -212,19 +186,12 @@ Resources:
       Timeout: 30
       Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSSMRole'
       AutoPublishAlias: live
-      Events:
-        Schedule1:
-          Type: Schedule
-          Properties:
-            Schedule: rate(1 day)
       VpcConfig:
         SecurityGroupIds:
           - sg-0d2984c17634f9cd2
         SubnetIds:
           - subnet-0a51c713e5dfb2a1f
           - subnet-078d73d2a5d259f32
-          - subnet-033a7367d825855ea
-          - subnet-0fa565e12ea171c18
       Environment:
         Variables:
           DB_NAME: shift
@@ -235,4 +202,61 @@ Resources:
           REGION: ap-northeast-2
           PLAN_ID : 0rceel
           SM_ID : shift/release/kasinfo
+          PARAMETER_STORE_VALUE : 'release_maintenance'
+
+  TransferStats:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: lambda/transfer_stats.handler
+      Runtime: nodejs12.x
+      Description: '전송 기록 통계를 위한 배치 작업'
+      MemorySize: 128
+      Timeout: 30
+      Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSSMRole'
+      AutoPublishAlias: live
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-0d2984c17634f9cd2
+        SubnetIds:
+          - subnet-0a51c713e5dfb2a1f
+          - subnet-078d73d2a5d259f32
+      Environment:
+        Variables:
+          DB_NAME: shift
+          DB_PORT: '3306'
+          DB_USER: shift_lambda
+          DB_ENDPOINT: hk-shift-real-aurora-cluster.cluster-c89v5jzuome9.ap-northeast-2.rds.amazonaws.com
+          DB_SM_ID : shift/release/aurora/shift_lambda
+          REGION: ap-northeast-2
+          PLAN_ID : 0rceel
+          SM_ID : shift/release/kasinfo
+          PARAMETER_STORE_VALUE : 'release_maintenance'
+
+  LinkStats:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: lambda/link_stats.handler
+      Runtime: nodejs12.x
+      Description: '링크 기록 통계를 위한 배치 작업'
+      MemorySize: 128
+      Timeout: 30
+      Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSSMRole'
+      AutoPublishAlias: live
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-0d2984c17634f9cd2
+        SubnetIds:
+          - subnet-0a51c713e5dfb2a1f
+          - subnet-078d73d2a5d259f32
+      Environment:
+        Variables:
+          DB_NAME: shift
+          DB_PORT: '3306'
+          DB_USER: shift_lambda
+          DB_ENDPOINT: hk-shift-real-aurora-cluster.cluster-c89v5jzuome9.ap-northeast-2.rds.amazonaws.com
+          DB_SM_ID : shift/release/aurora/shift_lambda
+          REGION: ap-northeast-2
+          PLAN_ID : 0rceel
+          SM_ID : shift/release/kasinfo
+          PARAMETER_STORE_VALUE : 'release_maintenance'
 

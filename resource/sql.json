@@ -174,5 +174,15 @@
         "queryString" : "UPDATE bulk_transfer SET success_count = success_count +1 WHERE bulk_seq= ?",
          "params" : ["bulk_seq"],
         "desc": "bulk_transfer update success_count+1"
+    },
+    "transfer_stats_daily_insert" : {
+        "queryString" : "INSERT INTO transfer_stats(year, month, day, svc_num, transfer_type, week, svc_grp_id, svc_name, transfer_count, amount_sum, fee_sum) SELECT year(subdate(curdate(),interval 1 day)), month(subdate(curdate(),interval 1 day)), day(subdate(curdate(),interval 1 day)), svc_num, type, weekofyear(subdate(curdate(),interval 1 day)), svc_grp_id, name, transfer_count, amount_sum, fee_sum FROM (select s.svc_num, t.type, s.svc_grp_id, s.name, count(*) as transfer_count, ifnull(sum(t.amount),0) as amount_sum, ifnull(sum(t.fee),0) as fee_sum from transfer as t inner join service as s on s.svc_num=t.svc_num where t.transfer_reg_dt >= subdate(curdate(),interval 1 day) and t.transfer_reg_dt < curdate() group by s.svc_grp_id, s.svc_num, t.type) as stat ON DUPLICATE KEY UPDATE transfer_count=stat.transfer_count, amount_sum=stat.amount_sum, fee_sum=stat.fee_sum;",
+        "params" : [],
+        "desc" : "transfer 통계를 위한 배치작업"
+    },
+    "link_stats_daily_insert" : {
+        "queryString" : "INSERT INTO link_stats(year, month, day, svc_grp_id, klip_new, week, link_count) SELECT year(subdate(curdate(),interval 1 day)), month(subdate(curdate(),interval 1 day)), day(subdate(curdate(),interval 1 day)), svc_grp_id, klip_new, weekofyear(subdate(curdate(),interval 1 day)), link_count FROM (select svc_grp_id, klip_new, count(*) as link_count from link where reg_dt >= subdate(curdate(),interval 1 day) and reg_dt < curdate() group by svc_grp_id, klip_new) as stat ON DUPLICATE KEY UPDATE link_count=stat.link_count;",
+        "params" : [],
+        "desc" : "link 통계를 위한 배치작업"
     }
 }

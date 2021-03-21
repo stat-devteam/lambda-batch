@@ -10,10 +10,20 @@ const awsInfo = require('../resource/aws.json');
 const BigNumber = require('bignumber.js');
 var moment = require('moment-timezone');
 var { InsertLogSeq } = require("../modules/utils_error.js");
+const psHandler = require('../modules/util_ps.js');
+var Base64 = require("js-base64");
 
 exports.handler = async(event) => {
+    console.log('[EVENT]', event);
 
-    //const connection = await dbHandler.connectRDS(process.env.DB_ENDPOINT, process.env.DB_PORT, process.env.DB_NAME, process.env.DB_USER)
+    const isMaintenance = await psHandler.getParameterStoreValue(process.env.PARAMETER_STORE_VALUE, 'batch', null);
+    console.log('isMaintenance', isMaintenance)
+    if (isMaintenance) {
+        const message = JSON.parse(Base64.decode(isMaintenance)).message
+        console.log('[Maintenance]', message)
+        return `Maintenance processed ${event.Records.length} messages.`;
+    }
+
     const pool = await dbPool.getPool();
 
     const secretValue = await smHandler.getSecretValue(process.env.SM_ID);
@@ -51,6 +61,7 @@ exports.handler = async(event) => {
             const rewardLogSeq = await InsertLogSeq('reward', rewardQueId, 'SQL', 1011, '해당 서비스의 한경 클레이튼 정보가 없습니다.');
             console.log('[TASK - Insert Log]', rewardLogSeq)
             validationHK = false;
+            return `Fail processed ${event.Records.length} messages.`;
         }
 
         const hkKlaytnAddress = hkAccountResult[0].address;
@@ -69,6 +80,7 @@ exports.handler = async(event) => {
             const rewardLogSeq = await InsertLogSeq('reward', rewardQueId, 'SQL', 1016, '서비스의 memberGroupId와 입력받은 memberGroupId가 일치하지 않습니다.');
             console.log('[TASK - Insert Log]', rewardLogSeq)
             validationService = false;
+            return `Fail processed ${event.Records.length} messages.`;
         }
 
         //[TASK] Transfer Check
@@ -81,6 +93,7 @@ exports.handler = async(event) => {
         if (transferExist) {
             //알 수 없는 이유로 메세지 큐가 여러번 수행될 경우, 중복해서 Send Klay 요청하는 것을 방지하기 위한 로직
             console.log('[ERROR] Already Transfer Exist')
+            return `Fail processed ${event.Records.length} messages.`;
         }
 
         if (validationHK && validationService && !transferExist) {

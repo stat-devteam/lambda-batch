@@ -12,8 +12,19 @@ var moment = require('moment-timezone');
 var { InsertLogSeq } = require("../modules/utils_error.js");
 const { RequestServiceCallbackUrl } = require('../modules/util_callback.js');
 const { DelegatedCheck } = require('../modules/util_klaytn.js');
+const psHandler = require('../modules/util_ps.js');
+var Base64 = require("js-base64");
 
 exports.handler = async(event) => {
+    console.log('[EVENT]', event);
+
+    const isMaintenance = await psHandler.getParameterStoreValue(process.env.PARAMETER_STORE_VALUE, 'batch', null);
+    console.log('isMaintenance', isMaintenance)
+    if (isMaintenance) {
+        const message = JSON.parse(Base64.decode(isMaintenance)).message
+        console.log('[Maintenance]', message)
+        return `Maintenance processed ${event.Records.length} messages.`;
+    }
 
     const pool = await dbPool.getPool();
 
