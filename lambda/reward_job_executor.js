@@ -141,7 +141,25 @@ exports.handler = async(event) => {
             let transferSeq = null;
 
             try {
-                const [insertResult, f1] = await pool.query(dbQuery.insert_transfer_with_rwd_q.queryString, [transferType, serviceNumber, linkNumber, pebAmount, fee, now, transferEndDate, txHash, txStatus, jobStatus, null, serviceCallbackSeq, memoSeq, currentBalance, rewardQueId]);
+                const [insertResult, f1] = await pool.query(dbQuery.insert_transfer_with_rwd_q.queryString, [
+                    transferType,
+                    serviceNumber,
+                    linkNumber,
+                    pebAmount,
+                    fee,
+                    now,
+                    transferEndDate,
+                    txHash,
+                    txStatus,
+                    jobStatus,
+                    null,
+                    serviceCallbackSeq,
+                    memoSeq,
+                    currentBalance,
+                    rewardQueId,
+                    userKlaytnAddress
+
+                ]);
                 transferSeq = insertResult.insertId;
             }
             catch (err) {

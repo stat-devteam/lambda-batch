@@ -131,8 +131,8 @@
         "desc": "해당 serviceNumber 한경 클레이튼 계정 확인"
     },
     "insert_transfer_with_rwd_q" : {
-        "queryString": "INSERT INTO transfer(type, svc_num, link_num, amount, fee, transfer_reg_dt, transfer_end_dt, tx_hash, tx_status, job_status, job_fetched_dt, svc_callback_seq, svc_memo_seq, link_accnt_before_balance, rwd_q_seq) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-        "params": ["transferType", "serviceNumber", "linkNumber", "pebAmount", "fee", "now", "transferEndDate", "txHash", "txStatus", "jobStatus", "now", "serviceCallbackId", "memoSeq", "currentBalance","rwd_q_seq"],
+        "queryString": "INSERT INTO transfer(type, svc_num, link_num, amount, fee, transfer_reg_dt, transfer_end_dt, tx_hash, tx_status, job_status, job_fetched_dt, svc_callback_seq, svc_memo_seq, link_accnt_before_balance, rwd_q_seq, klip_address) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+        "params": ["transferType", "serviceNumber", "linkNumber", "pebAmount", "fee", "now", "transferEndDate", "txHash", "txStatus", "jobStatus", "now", "serviceCallbackId", "memoSeq", "currentBalance","rwd_q_seq","klip_address"],
         "desc": "클레이 전송 후, transfer insert"
     },
     "service_callback_get" : {
