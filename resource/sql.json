@@ -184,5 +184,10 @@
         "queryString" : "INSERT INTO link_stats(year, month, day, svc_grp_id, klip_new, week, link_count) SELECT year(subdate(curdate(),interval 1 day)), month(subdate(curdate(),interval 1 day)), day(subdate(curdate(),interval 1 day)), svc_grp_id, klip_new, weekofyear(subdate(curdate(),interval 1 day)), link_count FROM (select svc_grp_id, klip_new, count(*) as link_count from link where reg_dt >= subdate(curdate(),interval 1 day) and reg_dt < curdate() group by svc_grp_id, klip_new) as stat ON DUPLICATE KEY UPDATE link_count=stat.link_count;",
         "params" : [],
         "desc" : "link 통계를 위한 배치작업"
+    },
+    "link_cancel_delete" : {
+        "queryString" : "DELETE FROM link_cancel WHERE cancel_dt < DATE_ADD(NOW(),INTERVAL -60 DAY );",
+        "params" : [],
+        "desc" : "link cancel delete 60일 경과 "
     }
 }
