@@ -295,3 +295,32 @@ Resources:
           PLAN_ID : was7u8
           SM_ID : shift/product/kasinfo
           PARAMETER_STORE_VALUE : 'dev_maintenance'
+  KasTransferCrawler:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: lambda/kas_transfer_crawler.handler
+      Runtime: nodejs12.x
+      Description: '회계 정산을 위한 KAS 트랜잭션 크롤링작업'
+      MemorySize: 128
+      Timeout: 600
+      Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSSMRole'
+      AutoPublishAlias: live
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-0e2bd8387180359c9
+        SubnetIds:
+          - subnet-0732d7b0216fbe2f7
+          - subnet-078099e1972636375
+          - subnet-08a164a0080a216c4
+          - subnet-00c6531721f8d485a
+      Environment:
+        Variables:
+          DB_NAME: shift
+          DB_PORT: '3306'
+          DB_USER: coredot
+          DB_ENDPOINT: shift-dev-aurora-cluster.cluster-c89v5jzuome9.ap-northeast-2.rds.amazonaws.com
+          DB_SM_ID : shift/product/aurora/coredot
+          REGION: ap-northeast-2
+          PLAN_ID : was7u8
+          SM_ID : shift/product/kasinfo
+          PARAMETER_STORE_VALUE : 'dev_maintenance'

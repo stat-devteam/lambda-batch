@@ -186,8 +186,28 @@
         "desc" : "link 통계를 위한 배치작업"
     },
     "link_cancel_delete" : {
-        "queryString" : "DELETE FROM link_cancel WHERE cancel_dt < DATE_ADD(NOW(),INTERVAL -60 DAY );",
+        "queryString" : "DELETE FROM link_cancel WHERE cancel_dt < DATE_ADD(NOW(),INTERVAL -180 DAY );",
         "params" : [],
-        "desc" : "link cancel delete 60일 경과 "
+        "desc" : "link cancel delete 180일 경과 "
+    },
+    "hk_klaytn_account_list_all" : {
+        "queryString" : "select * from hankyung_klaytn_account",
+        "params" : [],
+        "desc" : "klaytn 계좌 조회"
+    },
+    "kas_transfer_get_last_one" : {
+        "queryString": "SELECT * FROM kas_transfer where accnt_id = ? ORDER BY transfer_reg_dt DESC, kas_transfer_seq DESC LIMIT 1",
+        "params": ["accnt_id"],
+        "desc": "kas transfer last one row by accnt_id"
+    },
+    "kas_transfer_insert_bulk" : {
+        "queryString": "INSERT INTO kas_transfer(accnt_id, type, type_int, tx_hash, status_int, from_address, to_address, amount, fee_address, fee, balance, transfer_reg_dt) VALUES ?",
+        "params": ["row array"],
+        "desc": "kas transfer last one row by accnt_id"
+    },
+    "accounting_stats_insert" : {
+        "queryString": "INSERT INTO accounting_stats(year, month, day, accnt_id, type, svc_grp_id, week, svc_num, svc_name, transfer_count, amount_sum, fee_sum) SELECT year(subdate(curdate(),interval 1 day)), month(subdate(curdate(),interval 1 day)), day(subdate(curdate(),interval 1 day)), accnt_id, type, svc_grp_id, weekofyear(subdate(curdate(),interval 1 day)), ifnull(svc_num, 0) as svc_num, name, transfer_count, amount_sum, fee_sum FROM ( select kt.accnt_id as accnt_id, kt.type as type, ifnull(s.svc_grp_id, 'external') as svc_grp_id, s.svc_num, s.name, count(*) as transfer_count, ifnull(sum(kt.amount),0) as amount_sum, ifnull(sum(kt.fee),0) as fee_sum from kas_transfer as kt left outer join transfer as t on kt.tx_hash = t.tx_hash left join service as s on t.svc_num = s.svc_num where kt.transfer_reg_dt >= subdate(curdate(),interval 1 day) and kt.transfer_reg_dt < subdate(curdate(),interval 0 day)group by kt.accnt_id, kt.type, s.svc_grp_id, s.svc_num) as stat ON DUPLICATE KEY UPDATE transfer_count=stat.transfer_count, amount_sum=stat.amount_sum, fee_sum=stat.fee_sum;",
+        "params": [""],
+        "desc": "accounting_stats_insert"
     }
 }
