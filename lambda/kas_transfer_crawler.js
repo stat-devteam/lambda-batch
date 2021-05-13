@@ -30,7 +30,7 @@ exports.handler = async function(event) {
             const secretValue = await smHandler.getSecretValue(process.env.SM_ID);
 
             // for loop startDate ~ endDate
-            const startDate = moment(new Date('2020-12-01')).tz('Asia/Seoul');
+            const startDate = moment(new Date('2021-02-01')).tz('Asia/Seoul');
             const endDate = moment(new Date('2021-05-13')).tz('Asia/Seoul');
             var datesBetween = [];
             var startingMoment = startDate;
@@ -258,15 +258,18 @@ const isDelegated = (typeInt) => {
 const getFee = (data, type) => {
     let typeInt = data.typeInt
 
-    if (isDelegated(typeInt)) {
-        return 0;
-    }
-    else if (type === 'deposit') {
+    if (type === 'deposit') {
         return new BigNumber(data.fee).toString(10);
     }
     else {
-        return new BigNumber(data.fee).toString(10);
+        if (isDelegated(typeInt)) {
+            return 0;
+        }
+        else {
+            return new BigNumber(data.fee).toString(10);
+        }
     }
+
 }
 
 const updateLastBalance = (lastBalance, type, amount, fee) => {
