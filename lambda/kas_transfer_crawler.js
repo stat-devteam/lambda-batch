@@ -259,7 +259,7 @@ const getFee = (data, type) => {
     let typeInt = data.typeInt
 
     if (type === 'deposit') {
-        return new BigNumber(data.fee).toString(10);
+        return 0;
     }
     else {
         if (isDelegated(typeInt)) {
