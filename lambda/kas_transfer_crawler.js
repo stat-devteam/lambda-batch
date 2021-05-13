@@ -86,8 +86,8 @@ exports.handler = async function(event) {
                         const targetTransaction = orderedKasTransferList[i];
                         const transfer_reg_dt = moment.unix(targetTransaction.timestamp).tz('Asia/Seoul').format('YYYY-MM-DD HH:mm:ss');
                         const amount = new BigNumber(targetTransaction.value).toString(10);
-                        const fee = getFee(targetTransaction, targetKlaytnAddress);
                         const type = getAccountType(targetTransaction, targetKlaytnAddress);
+                        const fee = getFee(targetTransaction, type);
                         const to_address = targetTransaction.to
                         const from_address = targetTransaction.from;
                         const fee_address = targetTransaction.feePayer;
@@ -164,8 +164,8 @@ exports.handler = async function(event) {
             //         const targetTransaction = orderedKasTransferList[i];
             //         const transfer_reg_dt = moment.unix(targetTransaction.timestamp).tz('Asia/Seoul').format('YYYY-MM-DD HH:mm:ss');
             //         const amount = new BigNumber(targetTransaction.value).toString(10);
-            //         const fee = getFee(targetTransaction, targetKlaytnAddress);
             //         const type = getAccountType(targetTransaction, targetKlaytnAddress);
+            //         const fee = getFee(targetTransaction, type);
             //         const to_address = targetTransaction.to
             //         const from_address = targetTransaction.from;
             //         const fee_address = targetTransaction.feePayer;
@@ -255,11 +255,14 @@ const isDelegated = (typeInt) => {
     }
 }
 
-const getFee = (data, targetAddress) => {
+const getFee = (data, type) => {
     let typeInt = data.typeInt
 
     if (isDelegated(typeInt)) {
         return 0;
+    }
+    else if (type === 'deposit') {
+        return new BigNumber(data.fee).toString(10);
     }
     else {
         return new BigNumber(data.fee).toString(10);
