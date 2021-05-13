@@ -16,5 +16,8 @@
     },
     "TransferJobExecutor": {
         "lambda": {}
+    },
+    "AccountingStats": {
+        "lambda": {}
     }
 }
