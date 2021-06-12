@@ -82,6 +82,14 @@ exports.handler = async(event) => {
         }
         else if (txStatusResult.data && txStatusResult.data.status) {
             let txStatus = txStatusResult.data.status;
+
+
+            //Token을 사용할 경우, CommitError; 0x9 가 이런 식으로 나와서 체크해줘야함.
+            var errorReg = new RegExp("CommitError");
+            if (errorReg.test(txStatus)) {
+                txStatus = 'CommitError';
+            }
+
             console.log('[KAS] Check Transaction Result', txStatusResult);
             switch (txStatus) {
                 case 'Committed':
@@ -113,16 +121,14 @@ exports.handler = async(event) => {
 
                             }
                         }
-
-
                         break;
                     }
                 case 'CommitError':
                     {
                         const [updateResult, f5] = await pool.query(dbQuery.transfer_update_tx_job.queryString, ['fail', 'done', transferSeq]);
                         console.log('[CommitError] updateResult', updateResult);
-                        let code = txStatusResult.data.code || '';
-                        let message = txStatusResult.data.message || '';
+                        let code = txStatusResult.data.txError || '';
+                        let message = txStatusResult.data.errorMessage || '';
                         const logSeq = await InsertLogSeq('transfer', transferSeq, 'KAS', code, message);
                         console.log('[TASK - code]', code);
                         console.log('[TASK - message]', message);
@@ -152,8 +158,6 @@ exports.handler = async(event) => {
                         break;
                     }
             }
-
-
         }
         else {
             // KAS Result가 비정상일 경우

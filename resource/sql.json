@@ -1,11 +1,11 @@
 {
-    "service_get" : {
+    "service_get": {
         "queryString": "SELECT * FROM service WHERE svc_num = ?",
         "params": ["svc_num"],
         "desc": "service get"
     },
-    "reward_get_by_seq" : {
-         "queryString": "SELECT * FROM reward_queue WHERE rwd_q_seq = ?",
+    "reward_get_by_seq": {
+        "queryString": "SELECT * FROM reward_queue WHERE rwd_q_seq = ?",
         "params": ["rwd_q_seq"],
         "desc": "reward_queue get"
     },
@@ -27,7 +27,7 @@
     },
     "reward_job_fetch_invalid_update": {
         "queryString": "UPDATE reward_queue SET job_status='invalid', transfer_seq=? WHERE rwd_q_seq=?",
-        "params": ["transfer_seq","rwd_q_seq"],
+        "params": ["transfer_seq", "rwd_q_seq"],
         "desc": "reward 요청 자체가 잘못 되었을 경우, invalid로 변경"
     },
     "reward_job_set_invalid_update": {
@@ -50,13 +50,11 @@
         "params": [],
         "desc": "전송 작업중 배치작업으로 트랜잭션 상태를 확인해야할 전송 작업을 가져온다. LIMIT"
     },
-
     "transfer_job_fetch_update": {
         "queryString": "UPDATE transfer SET job_status='fetched', job_fetched_dt = now() WHERE transfer_seq=? AND job_status ='ready'",
         "params": ["transfer_seq"],
         "desc": "전송 작업 상태를 fetched로 변경"
     },
-
     "reward_queue_expired_clean_update": {
         "queryString": "UPDATE reward_queue SET job_status='expired' WHERE job_status='ready' AND expire_dt<now()",
         "params": [],
@@ -86,28 +84,28 @@
         "desc": "transfer update tx_status, job_status"
     },
     "transfer_update_tx_job_fee_hash": {
-        "queryString" : "UPDATE transfer SET tx_status = ?, job_status =?, fee =?, tx_hash = ?, transfer_end_dt = now() WHERE transfer_seq = ?",
-        "params" :  ["tx_status","job_status", "fee","tx_hash","completeDate", "transferSeq"],
-        "desc" : "tx_status, job_status, fee update"
+        "queryString": "UPDATE transfer SET tx_status = ?, job_status =?, fee =?, tx_hash = ?, transfer_end_dt = now() WHERE transfer_seq = ?",
+        "params": ["tx_status", "job_status", "fee", "tx_hash", "completeDate", "transferSeq"],
+        "desc": "tx_status, job_status, fee update"
     },
     "transfer_update_tx_job_fee": {
-        "queryString" : "UPDATE transfer SET tx_status = ?, job_status =?, fee =?, transfer_end_dt = now() WHERE transfer_seq = ?",
-        "params" :  ["tx_status","job_status", "fee","completeDate", "transferSeq"],
-        "desc" : "tx_status, job_status, fee update"
+        "queryString": "UPDATE transfer SET tx_status = ?, job_status =?, fee =?, transfer_end_dt = now() WHERE transfer_seq = ?",
+        "params": ["tx_status", "job_status", "fee", "completeDate", "transferSeq"],
+        "desc": "tx_status, job_status, fee update"
     },
     "transfer_update_tx_job_hash": {
-        "queryString" : "UPDATE transfer SET tx_status = ?, job_status =?, tx_hash = ?, transfer_end_dt = now() WHERE transfer_seq = ?",
-        "params" :  ["tx_status","job_status","tx_hash","completeDate", "transferSeq"],
-        "desc" : "tx_status, job_status, fee update"
+        "queryString": "UPDATE transfer SET tx_status = ?, job_status =?, tx_hash = ?, transfer_end_dt = now() WHERE transfer_seq = ?",
+        "params": ["tx_status", "job_status", "tx_hash", "completeDate", "transferSeq"],
+        "desc": "tx_status, job_status, fee update"
     },
     "transfer_update_tx_job": {
-        "queryString" : "UPDATE transfer SET tx_status = ?, job_status =?, transfer_end_dt = now() WHERE transfer_seq = ?",
-        "params" :  ["tx_status","job_status","completeDate", "transferSeq"],
-        "desc" : "tx_status, job_status, fee update"
+        "queryString": "UPDATE transfer SET tx_status = ?, job_status =?, transfer_end_dt = now() WHERE transfer_seq = ?",
+        "params": ["tx_status", "job_status", "completeDate", "transferSeq"],
+        "desc": "tx_status, job_status, fee update"
     },
     "transfer_update_job": {
         "queryString": "UPDATE transfer SET job_status = ? WHERE transfer_seq = ?",
-        "params": [ "job_status", "transferSeq"],
+        "params": ["job_status", "transferSeq"],
         "desc": "transfer update job_status"
     },
     "transfer_status_hash_update": {
@@ -117,95 +115,95 @@
     },
     "transfer_status_fee_update": {
         "queryString": "UPDATE transfer SET tx_status = ?, transfer_end_dt = ?, job_status = ? , fee = ? WHERE transfer_seq = ?",
-        "params": ["newStatus", "completeDate", "job_status","fee", "transferSeq"],
+        "params": ["newStatus", "completeDate", "job_status", "fee", "transferSeq"],
         "desc": "polling 이후 transfer update"
     },
     "transfer_job_status_retry_update": {
         "queryString": "UPDATE transfer SET job_status = ?, job_fetched_dt = ?  WHERE transfer_seq = ?",
-        "params": [ "job_status", "job_fetched_dt", "transferSeq"],
+        "params": ["job_status", "job_fetched_dt", "transferSeq"],
         "desc": "transfer update status and job_fetched_dt for retry"
     },
-    "check_hk_klayton" : {
-        "queryString": "SELECT * FROM hankyung_klaytn_account WHERE accnt_id = (SELECT accnt_id FROM service WHERE svc_num = ? )",
+    "check_hk_klayton": {
+        "queryString": "SELECT * FROM klaytn_account WHERE accnt_id = (SELECT accnt_id FROM service WHERE svc_num = ? )",
         "params": ["serviceNumber"],
         "desc": "해당 serviceNumber 한경 클레이튼 계정 확인"
     },
-    "insert_transfer_with_rwd_q" : {
+    "insert_transfer_with_rwd_q": {
         "queryString": "INSERT INTO transfer(type, svc_num, link_num, amount, fee, transfer_reg_dt, transfer_end_dt, tx_hash, tx_status, job_status, job_fetched_dt, svc_callback_seq, svc_memo_seq, link_accnt_before_balance, rwd_q_seq, klip_address) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-        "params": ["transferType", "serviceNumber", "linkNumber", "pebAmount", "fee", "now", "transferEndDate", "txHash", "txStatus", "jobStatus", "now", "serviceCallbackId", "memoSeq", "currentBalance","rwd_q_seq","klip_address"],
+        "params": ["transferType", "serviceNumber", "linkNumber", "pebAmount", "fee", "now", "transferEndDate", "txHash", "txStatus", "jobStatus", "now", "serviceCallbackId", "memoSeq", "currentBalance", "rwd_q_seq", "klip_address"],
         "desc": "클레이 전송 후, transfer insert"
     },
-    "service_callback_get" : {
+    "service_callback_get": {
         "queryString": "SELECT * FROM service_callback WHERE svc_callback_seq = ? AND callback_status= 'ready'",
         "params": ["svc_callback_seq"],
         "desc": "service callback get with ready status"
     },
-    "service_callback_update" : {
-        "queryString" : "UPDATE service_callback SET callback_url= ? , callback_status = ?, callback_result = ? WHERE svc_callback_seq = ?",
-        "params" : ["callback_url","callback_status","callback_result","svc_callback_seq"],
+    "service_callback_update": {
+        "queryString": "UPDATE service_callback SET callback_url= ? , callback_status = ?, callback_result = ? WHERE svc_callback_seq = ?",
+        "params": ["callback_url", "callback_status", "callback_result", "svc_callback_seq"],
         "desc": "service callback set status and result"
     },
-    "error_log_insert" : {
-        "queryString" : "INSERT INTO error_log(type,code,message) VALUES (?,?,?)",
-        "params" : ["type", "code", "message"],
+    "error_log_insert": {
+        "queryString": "INSERT INTO error_log(type,code,message) VALUES (?,?,?)",
+        "params": ["type", "code", "message"],
         "desc": "insert new error_log"
     },
-    "reward_log_update" : {
-        "queryString" : "UPDATE reward_queue SET log_seq = ? WHERE rwd_q_seq = ?",
-        "params" : ["log_seq", "rwd_q_seq"],
+    "reward_log_update": {
+        "queryString": "UPDATE reward_queue SET log_seq = ? WHERE rwd_q_seq = ?",
+        "params": ["log_seq", "rwd_q_seq"],
         "desc": "reward_log_update"
     },
-    "transfer_log_update" : {
-        "queryString" : "UPDATE transfer SET log_seq = ? WHERE transfer_seq = ?",
-        "params" : ["log_seq", "transfer_seq"],
+    "transfer_log_update": {
+        "queryString": "UPDATE transfer SET log_seq = ? WHERE transfer_seq = ?",
+        "params": ["log_seq", "transfer_seq"],
         "desc": "transfer_log_update"
     },
-    "transfer_get_by_rwd_q" : {
-        "queryString" : "SELECT * FROM transfer WHERE rwd_q_seq = ?",
-        "params" : ["rwd_q_seq"],
+    "transfer_get_by_rwd_q": {
+        "queryString": "SELECT * FROM transfer WHERE rwd_q_seq = ?",
+        "params": ["rwd_q_seq"],
         "desc": "klay send 전에, 리워드 트랜스퍼 있는지 확인"
     },
-    "reward_update_job" : {
-        "queryString" : "UPDATE reward_queue SET job_status = ? WHERE rwd_q_seq = ?",
-        "params" : ["job_status", "rwd_q_seq"],
+    "reward_update_job": {
+        "queryString": "UPDATE reward_queue SET job_status = ? WHERE rwd_q_seq = ?",
+        "params": ["job_status", "rwd_q_seq"],
         "desc": "reward update job_status"
     },
-    "bulk_transfer_update_success_count" : {
-        "queryString" : "UPDATE bulk_transfer SET success_count = success_count +1 WHERE bulk_seq= ?",
-         "params" : ["bulk_seq"],
+    "bulk_transfer_update_success_count": {
+        "queryString": "UPDATE bulk_transfer SET success_count = success_count +1 WHERE bulk_seq= ?",
+        "params": ["bulk_seq"],
         "desc": "bulk_transfer update success_count+1"
     },
-    "transfer_stats_daily_insert" : {
-        "queryString" : "INSERT INTO transfer_stats(year, month, day, svc_num, transfer_type, week, svc_grp_id, svc_name, transfer_count, amount_sum, fee_sum) SELECT year(subdate(curdate(),interval 1 day)), month(subdate(curdate(),interval 1 day)), day(subdate(curdate(),interval 1 day)), svc_num, type, weekofyear(subdate(curdate(),interval 1 day)), svc_grp_id, name, transfer_count, amount_sum, fee_sum FROM (select s.svc_num, t.type, s.svc_grp_id, s.name, count(*) as transfer_count, ifnull(sum(t.amount),0) as amount_sum, ifnull(sum(t.fee),0) as fee_sum from transfer as t inner join service as s on s.svc_num=t.svc_num where t.transfer_reg_dt >= subdate(curdate(),interval 1 day) and t.transfer_reg_dt < curdate() group by s.svc_grp_id, s.svc_num, t.type) as stat ON DUPLICATE KEY UPDATE transfer_count=stat.transfer_count, amount_sum=stat.amount_sum, fee_sum=stat.fee_sum;",
-        "params" : [],
-        "desc" : "transfer 통계를 위한 배치작업"
+    "transfer_stats_daily_insert": {
+        "queryString": "INSERT INTO transfer_stats(year, month, day, svc_num, transfer_type, week, svc_grp_id, svc_name, transfer_count, amount_sum, fee_sum) SELECT year(subdate(curdate(),interval 1 day)), month(subdate(curdate(),interval 1 day)), day(subdate(curdate(),interval 1 day)), svc_num, type, weekofyear(subdate(curdate(),interval 1 day)), svc_grp_id, name, transfer_count, amount_sum, fee_sum FROM (select s.svc_num, t.type, s.svc_grp_id, s.name, count(*) as transfer_count, ifnull(sum(t.amount),0) as amount_sum, ifnull(sum(t.fee),0) as fee_sum from transfer as t inner join service as s on s.svc_num=t.svc_num where t.transfer_reg_dt >= subdate(curdate(),interval 1 day) and t.transfer_reg_dt < curdate() group by s.svc_grp_id, s.svc_num, t.type) as stat ON DUPLICATE KEY UPDATE transfer_count=stat.transfer_count, amount_sum=stat.amount_sum, fee_sum=stat.fee_sum;",
+        "params": [],
+        "desc": "transfer 통계를 위한 배치작업"
     },
-    "link_stats_daily_insert" : {
-        "queryString" : "INSERT INTO link_stats(year, month, day, svc_grp_id, klip_new, week, link_count) SELECT year(subdate(curdate(),interval 1 day)), month(subdate(curdate(),interval 1 day)), day(subdate(curdate(),interval 1 day)), svc_grp_id, klip_new, weekofyear(subdate(curdate(),interval 1 day)), link_count FROM (select svc_grp_id, klip_new, count(*) as link_count from link where reg_dt >= subdate(curdate(),interval 1 day) and reg_dt < curdate() group by svc_grp_id, klip_new) as stat ON DUPLICATE KEY UPDATE link_count=stat.link_count;",
-        "params" : [],
-        "desc" : "link 통계를 위한 배치작업"
+    "link_stats_daily_insert": {
+        "queryString": "INSERT INTO link_stats(year, month, day, svc_grp_id, klip_new, week, link_count) SELECT year(subdate(curdate(),interval 1 day)), month(subdate(curdate(),interval 1 day)), day(subdate(curdate(),interval 1 day)), svc_grp_id, klip_new, weekofyear(subdate(curdate(),interval 1 day)), link_count FROM (select svc_grp_id, klip_new, count(*) as link_count from link where reg_dt >= subdate(curdate(),interval 1 day) and reg_dt < curdate() group by svc_grp_id, klip_new) as stat ON DUPLICATE KEY UPDATE link_count=stat.link_count;",
+        "params": [],
+        "desc": "link 통계를 위한 배치작업"
     },
-    "link_cancel_delete" : {
-        "queryString" : "DELETE FROM link_cancel WHERE cancel_dt < DATE_ADD(NOW(),INTERVAL -180 DAY );",
-        "params" : [],
-        "desc" : "link cancel delete 180일 경과 "
+    "link_cancel_delete": {
+        "queryString": "DELETE FROM link_cancel WHERE cancel_dt < DATE_ADD(NOW(),INTERVAL -180 DAY );",
+        "params": [],
+        "desc": "link cancel delete 180일 경과 "
     },
-    "hk_klaytn_account_list_all" : {
-        "queryString" : "select * from hankyung_klaytn_account",
-        "params" : [],
-        "desc" : "klaytn 계좌 조회"
+    "hk_klaytn_account_list_all": {
+        "queryString": "select * from klaytn_account",
+        "params": [],
+        "desc": "klaytn 계좌 조회"
     },
-    "kas_transfer_get_last_one" : {
+    "kas_transfer_get_last_one": {
         "queryString": "SELECT * FROM kas_transfer where accnt_id = ? ORDER BY transfer_reg_dt DESC, kas_transfer_seq DESC LIMIT 1",
         "params": ["accnt_id"],
         "desc": "kas transfer last one row by accnt_id"
     },
-    "kas_transfer_insert_bulk" : {
+    "kas_transfer_insert_bulk": {
         "queryString": "INSERT INTO kas_transfer(accnt_id, type, type_int, tx_hash, status_int, from_address, to_address, amount, fee_address, fee, balance, transfer_reg_dt) VALUES ?",
         "params": ["row array"],
         "desc": "kas transfer last one row by accnt_id"
     },
-    "accounting_stats_insert" : {
+    "accounting_stats_insert": {
         "queryString": "INSERT INTO accounting_stats(year, month, day, accnt_id, type, svc_grp_id, week, svc_num, svc_name, transfer_count, amount_sum, fee_sum) SELECT year(subdate(curdate(),interval 1 day)), month(subdate(curdate(),interval 1 day)), day(subdate(curdate(),interval 1 day)), accnt_id, type, svc_grp_id, weekofyear(subdate(curdate(),interval 1 day)), ifnull(svc_num, 0) as svc_num, name, transfer_count, amount_sum, fee_sum FROM ( select kt.accnt_id as accnt_id, kt.type as type, ifnull(s.svc_grp_id, 'external') as svc_grp_id, s.svc_num, s.name, count(*) as transfer_count, ifnull(sum(kt.amount),0) as amount_sum, ifnull(sum(kt.fee),0) as fee_sum from kas_transfer as kt left outer join transfer as t on kt.tx_hash = t.tx_hash left join service as s on t.svc_num = s.svc_num where kt.transfer_reg_dt >= subdate(curdate(),interval 1 day) and kt.transfer_reg_dt < subdate(curdate(),interval 0 day)group by kt.accnt_id, kt.type, s.svc_grp_id, s.svc_num) as stat ON DUPLICATE KEY UPDATE transfer_count=stat.transfer_count, amount_sum=stat.amount_sum, fee_sum=stat.fee_sum;",
         "params": [""],
         "desc": "accounting_stats_insert"

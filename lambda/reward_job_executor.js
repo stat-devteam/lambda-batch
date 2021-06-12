@@ -12,6 +12,7 @@ var moment = require('moment-timezone');
 var { InsertLogSeq } = require("../modules/utils_error.js");
 const psHandler = require('../modules/util_ps.js');
 var Base64 = require("js-base64");
+const tokenUtil = require("../modules/util_token.js");
 
 exports.handler = async(event) => {
     console.log('[EVENT]', event);
@@ -39,8 +40,8 @@ exports.handler = async(event) => {
 
         const linkNumber = data.link_num;
         const userKlaytnAddress = data.klip_address;
-        const bigNumberAmount = new BigNumber(data.amount);
-        const hexAmount = '0x' + bigNumberAmount.toString(16);
+        const bigNumberAmount = new BigNumber(data.amount).multipliedBy(new BigNumber(1e-18));
+        const decimalAmount = bigNumberAmount.toString(10);
         const serviceNumber = data.svc_num;
         const memoSeq = data.svc_memo_seq;
         const rewardQueId = data.rwd_q_seq;
@@ -98,34 +99,14 @@ exports.handler = async(event) => {
 
         if (validationHK && validationService && !transferExist) {
             //요청 수행할 수 있는 for loop condition
-            // [sub] get Current Balance
-            const jsonRpcHeader = {
-                'x-chain-id': kasInfo.xChainId,
-                "Content-Type": "application/json"
-            }
-            const jsonRpcAuth = {
-                username: secretValue.kas_access_key,
-                password: secretValue.kas_secret_access_key,
-            }
-            const jsonRpcBody = { "jsonrpc": "2.0", "method": "klay_getBalance", "params": [userKlaytnAddress, "latest"], "id": 1 }
 
-            const jsonRpcResponse = await axios
-                .post(kasInfo.jsonRpcUrl, jsonRpcBody, {
-                    headers: jsonRpcHeader,
-                    auth: jsonRpcAuth
-                })
-                .catch((err) => {
-                    console.log('jsonrpc send fali', err);
-                    let errorBody = {
-                        code: 1023,
-                        message: '[KAS] 잔액 조회 에러',
-                    };
-                    console.log('[400] - (1023) 잔액 조회 에러');
-                    console.log('jsonRpcResponse', jsonRpcResponse);
-                });
+            const balanceData = await tokenUtil.getBalanceOf(userKlaytnAddress);
 
-            console.log('[KAS] jsonRpcResponse for balance', jsonRpcResponse);
-            const currentBalance = jsonRpcResponse.data.result ? new BigNumber(jsonRpcResponse.data.result).toString(10) : null;
+            if (balanceData.result) {}
+            else {
+                console.log('[400] - (1023) 잔액 조회 에러', balanceData);
+            }
+            const currentBalance = balanceData.balance || 0;
 
 
             //[TASK]  insert before_submit transfer
@@ -170,76 +151,22 @@ exports.handler = async(event) => {
             const [transferSeqSetUpdateResult, f2] = await pool.query(dbQuery.reward_transfer_seq_update.queryString, [transferSeq, rewardQueId]);
             console.log('[TASK - Update Reward] set transferSeq', transferSeqSetUpdateResult)
 
+
             //[TASK] Klay Transfer
-            const axiosHeader = {
-                'Authorization': secretValue.kas_authorization,
-                'x-krn': secretValue.kas_x_krn,
-                'Content-Type': 'application/json',
-                'x-chain-id': kasInfo.xChainId,
-            };
+            const sendResult = await tokenUtil.sendToken(hkKlaytnAddress, userKlaytnAddress, decimalAmount);
+            console.log('sendResult', sendResult);
 
-            const sendBody = {
-                from: hkKlaytnAddress,
-                value: hexAmount,
-                to: userKlaytnAddress,
-                memo: 'memo',
-                nonce: 0,
-                gas: 0,
-                submit: true,
-            };
+            if (sendResult.result) {
 
-            const sendResponse = await axios
-                .post(kasInfo.apiUrl + 'tx/fd/value', sendBody, {
-                    headers: axiosHeader,
-                })
-                .catch((err) => {
-                    return { error: err.response }
-                });
-
-            if (sendResponse.error) {
-
-                console.log('[SEND KLAY ERROR]', sendResponse.error);
-                // 전송 실패 이슈
-                //err.data.code === 1065001
-                //err.data.message
-                // failed to send a raw transaction to klaytn node; -32000::insufficient funds of the sender for value
-                // failed to send a raw transaction to klaytn node; -32000::not a program account (e.g., an account having code and storage)
-                // failed to send a raw transaction to klaytn node; -32000::nonce too low
-                // failed to send a raw transaction to klaytn node; -32000::insufficient funds of the fee payer for gas * price
-
-                //주소가 잘못되었을 때
-                // account : 주소 string이지만 잘못
-                //err.data.code = 1061609
-                //err.data.message = it just allow Klaytn address form; to
-                // account : null일 경우
-                //err.data.code ===1061608
-                ///err.data.message
-                // cannot be empty or zero value; to
-                // cannot be empty or zero value; input
-                const [updateInvalidResult, f1] = await pool.query(dbQuery.reward_job_fetch_invalid_update.queryString, [transferSeq, rewardQueId]);
-                console.log('[TASK - Update Reward] Invlid', updateInvalidResult);
-                //send response eror일 경우, transaction 자체를 submit 할수가 없었던 요청.
-                const completeDate = moment(new Date()).tz('Asia/Seoul').format('YYYY-MM-DD HH:mm:ss');
-                const newFee = 0;
-                const [statusFailResult, f2] = await pool.query(dbQuery.transfer_status_fee_update.queryString, ['fail', completeDate, 'done', null, transferSeq]);
-                console.log('[TASK - Update Transfer] Fail', updateInvalidResult);
-
-                let code = sendResponse.error.data.code;
-                let message = sendResponse.error.data.message;
-                console.log('[code]', code)
-                console.log('[message]', message)
-                const rewardLogSeq = await InsertLogSeq('reward', rewardQueId, 'KAS', code, message);
-                const transferLogSeq = await InsertLogSeq('transfer', transferSeq, 'KAS', code, message);
-                console.log('rewardLogSeq', rewardLogSeq);
-                console.log('transferLogSeq', transferLogSeq);
-            }
-            else {
+                const sendResponse = sendResult;
                 console.log('[SEND KLAY SUCCESS] sendResponse', sendResponse.data);
 
                 const sendStatus = sendResponse.data.status;
                 console.log('sendStatus', sendStatus)
                 let updateTxStatus = '';
                 let updateJobStatus = '';
+
+                var errorReg = new RegExp("CommitError");
 
                 if (sendStatus === 'Submitted') {
                     updateTxStatus = 'submit';
@@ -249,6 +176,15 @@ exports.handler = async(event) => {
                 else if (sendStatus === 'Pending') {
                     updateTxStatus = 'pending';
                     updateJobStatus = 'ready';
+
+                }
+                else if (errorReg.test(sendStatus)) {
+                    updateTxStatus = 'fail';
+                    updateJobStatus = 'done';
+                    let code = sendResponse.data.txError;
+                    let message = sendResponse.data.errorMessage;
+                    const rewardLogSeq = await InsertLogSeq('reward', rewardQueId, 'KAS', code, message);
+                    const transferLogSeq = await InsertLogSeq('transfer', transferSeq, 'KAS', code, message);
 
                 }
                 else {
@@ -277,6 +213,29 @@ exports.handler = async(event) => {
                 catch (err) {
                     console.log('rewardQueSuccessUpdateResult error', err);
                 }
+
+            }
+            else {
+                let errorBody = {
+                    code: 2002,
+                    message: '[KAS] 클레이 전송 실패',
+                }
+                const code = sendResult.code;
+                const message = sendResult.message;
+                const [updateInvalidResult, f1] = await pool.query(dbQuery.reward_job_fetch_invalid_update.queryString, [transferSeq, rewardQueId]);
+                console.log('[TASK - Update Reward] Invlid', updateInvalidResult);
+                //send response eror일 경우, transaction 자체를 submit 할수가 없었던 요청.
+                const completeDate = moment(new Date()).tz('Asia/Seoul').format('YYYY-MM-DD HH:mm:ss');
+                const newFee = 0;
+                const [statusFailResult, f2] = await pool.query(dbQuery.transfer_status_fee_update.queryString, ['fail', completeDate, 'done', null, transferSeq]);
+                console.log('[TASK - Update Transfer] Fail', updateInvalidResult);
+                console.log('[code]', code)
+                console.log('[message]', message)
+                const rewardLogSeq = await InsertLogSeq('reward', rewardQueId, 'KAS', code, message);
+                const transferLogSeq = await InsertLogSeq('transfer', transferSeq, 'KAS', code, message);
+                console.log('rewardLogSeq', rewardLogSeq);
+                console.log('transferLogSeq', transferLogSeq);
+
             }
         }
     }

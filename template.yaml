@@ -10,28 +10,27 @@ Resources:
       Description: '디비에서 전송해야할 예약목록 가져와서 SQS에 등록'
       MemorySize: 128
       Timeout: 30
-      Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSSMRole'
+      Role: 'arn:aws:iam::151057464517:role/role_lamda_rds_sm'
       AutoPublishAlias: live
       VpcConfig:
         SecurityGroupIds:
-          - sg-0e2bd8387180359c9
+          - sg-0264570acb525ea2c
         SubnetIds:
-          - subnet-0732d7b0216fbe2f7
-          - subnet-078099e1972636375
-          - subnet-08a164a0080a216c4
-          - subnet-00c6531721f8d485a
+          - subnet-046d19f8679e0c3ba
+          - subnet-056eb2522829ac617
       Environment:
         Variables:
-          QUEUE_URL: https://sqs.ap-northeast-2.amazonaws.com/180677353921/ShiftProductRewardSQS.fifo
-          DB_NAME: shift
+          DB_NAME: stat
           DB_PORT: '3306'
-          DB_USER: coredot
-          DB_ENDPOINT: shift-dev-aurora-cluster.cluster-c89v5jzuome9.ap-northeast-2.rds.amazonaws.com
-          DB_SM_ID : shift/product/aurora/coredot
+          DB_USER: stat_lambda
+          DB_ENDPOINT: stat-dev-aurora-cluster-instance-1.cie0pivfwnw8.ap-northeast-2.rds.amazonaws.com
+          DB_SM_ID : stat-dev-rds-sm
           REGION: ap-northeast-2
-          PLAN_ID : was7u8
-          SM_ID : shift/product/kasinfo
+          PLAN_ID : 7p5oq9
+          SM_ID : stat-dev-kas-sm
+          COGNITO_USER_POOL_ID : ap-northeast-2_FkC6uTaVh
           PARAMETER_STORE_VALUE : 'dev_maintenance'
+          QUEUE_URL : https://sqs.ap-northeast-2.amazonaws.com/151057464517/stat-dev-reward-sqs.fifo
   RewardJobExecutor:
     Type: 'AWS::Serverless::Function'
     Properties:
@@ -40,26 +39,25 @@ Resources:
       Description: 'SQS에 등록된 전송 예약 작업을 하나 가져와서 실행'
       MemorySize: 128
       Timeout: 29
-      Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSCogSMRole'
+      Role: 'arn:aws:iam::151057464517:role/role_lamda_rds_sm'
       AutoPublishAlias: live
       VpcConfig:
         SecurityGroupIds:
-          - sg-0e2bd8387180359c9
+          - sg-0264570acb525ea2c
         SubnetIds:
-          - subnet-0732d7b0216fbe2f7
-          - subnet-078099e1972636375
-          - subnet-08a164a0080a216c4
-          - subnet-00c6531721f8d485a
+          - subnet-046d19f8679e0c3ba
+          - subnet-056eb2522829ac617
       Environment:
         Variables:
-          DB_NAME: shift
+          DB_NAME: stat
           DB_PORT: '3306'
-          DB_USER: coredot
-          DB_ENDPOINT: shift-dev-aurora-cluster.cluster-c89v5jzuome9.ap-northeast-2.rds.amazonaws.com
-          DB_SM_ID : shift/product/aurora/coredot
+          DB_USER: stat_lambda
+          DB_ENDPOINT: stat-dev-aurora-cluster-instance-1.cie0pivfwnw8.ap-northeast-2.rds.amazonaws.com
+          DB_SM_ID : stat-dev-rds-sm
           REGION: ap-northeast-2
-          PLAN_ID : was7u8
-          SM_ID : shift/product/kasinfo
+          PLAN_ID : 7p5oq9
+          SM_ID : stat-dev-kas-sm
+          COGNITO_USER_POOL_ID : ap-northeast-2_FkC6uTaVh
           PARAMETER_STORE_VALUE : 'dev_maintenance'
   TransferJobFetcher:
     Type: 'AWS::Serverless::Function'
@@ -69,28 +67,27 @@ Resources:
       Description: '전송 상태 확인할 목록 가져와서 SQS에 등록'
       MemorySize: 128
       Timeout: 30
-      Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSSMRole'
+      Role: 'arn:aws:iam::151057464517:role/role_lamda_rds_sm'
       AutoPublishAlias: live
       VpcConfig:
         SecurityGroupIds:
-          - sg-0e2bd8387180359c9
+          - sg-0264570acb525ea2c
         SubnetIds:
-          - subnet-0732d7b0216fbe2f7
-          - subnet-078099e1972636375
-          - subnet-08a164a0080a216c4
-          - subnet-00c6531721f8d485a
+          - subnet-046d19f8679e0c3ba
+          - subnet-056eb2522829ac617
       Environment:
         Variables:
-          QUEUE_URL: https://sqs.ap-northeast-2.amazonaws.com/180677353921/ShiftProductTransferSQS.fifo
-          DB_NAME: shift
+          DB_NAME: stat
           DB_PORT: '3306'
-          DB_USER: coredot
-          DB_ENDPOINT: shift-dev-aurora-cluster.cluster-c89v5jzuome9.ap-northeast-2.rds.amazonaws.com
-          DB_SM_ID : shift/product/aurora/coredot
+          DB_USER: stat_lambda
+          DB_ENDPOINT: stat-dev-aurora-cluster-instance-1.cie0pivfwnw8.ap-northeast-2.rds.amazonaws.com
+          DB_SM_ID : stat-dev-rds-sm
           REGION: ap-northeast-2
-          PLAN_ID : was7u8
-          SM_ID : shift/product/kasinfo
+          PLAN_ID : 7p5oq9
+          SM_ID : stat-dev-kas-sm
+          COGNITO_USER_POOL_ID : ap-northeast-2_FkC6uTaVh
           PARAMETER_STORE_VALUE : 'dev_maintenance'
+          QUEUE_URL : https://sqs.ap-northeast-2.amazonaws.com/151057464517/stat-dev-transfer-sqs.fifo
   TransferJobExecutor:
     Type: 'AWS::Serverless::Function'
     Properties:
@@ -99,26 +96,25 @@ Resources:
       Description: 'SQS에 등록된 전송 상태 확인 작업을 하나 가져와서 실행'
       MemorySize: 128
       Timeout: 29
-      Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSCogSMRole'
+      Role: 'arn:aws:iam::151057464517:role/role_lamda_rds_sm'
       AutoPublishAlias: live
       VpcConfig:
         SecurityGroupIds:
-          - sg-0e2bd8387180359c9
+          - sg-0264570acb525ea2c
         SubnetIds:
-          - subnet-0732d7b0216fbe2f7
-          - subnet-078099e1972636375
-          - subnet-08a164a0080a216c4
-          - subnet-00c6531721f8d485a
+          - subnet-046d19f8679e0c3ba
+          - subnet-056eb2522829ac617
       Environment:
         Variables:
-          DB_NAME: shift
+          DB_NAME: stat
           DB_PORT: '3306'
-          DB_USER: coredot
-          DB_ENDPOINT: shift-dev-aurora-cluster.cluster-c89v5jzuome9.ap-northeast-2.rds.amazonaws.com
-          DB_SM_ID : shift/product/aurora/coredot
+          DB_USER: stat_lambda
+          DB_ENDPOINT: stat-dev-aurora-cluster-instance-1.cie0pivfwnw8.ap-northeast-2.rds.amazonaws.com
+          DB_SM_ID : stat-dev-rds-sm
           REGION: ap-northeast-2
-          PLAN_ID : was7u8
-          SM_ID : shift/product/kasinfo
+          PLAN_ID : 7p5oq9
+          SM_ID : stat-dev-kas-sm
+          COGNITO_USER_POOL_ID : ap-northeast-2_FkC6uTaVh
           PARAMETER_STORE_VALUE : 'dev_maintenance'
   RewardCleaner:
     Type: 'AWS::Serverless::Function'
@@ -128,28 +124,26 @@ Resources:
       Description: '예약 등록된 작업들중 유효하지 않은것들 찾아서 삭제(또는 상태 셋팅)'
       MemorySize: 128
       Timeout: 30
-      Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSSMRole'
+      Role: 'arn:aws:iam::151057464517:role/role_lamda_rds_sm'
       AutoPublishAlias: live
       VpcConfig:
         SecurityGroupIds:
-          - sg-0e2bd8387180359c9
+          - sg-0264570acb525ea2c
         SubnetIds:
-          - subnet-0732d7b0216fbe2f7
-          - subnet-078099e1972636375
-          - subnet-08a164a0080a216c4
-          - subnet-00c6531721f8d485a
+          - subnet-046d19f8679e0c3ba
+          - subnet-056eb2522829ac617
       Environment:
         Variables:
-          DB_NAME: shift
+          DB_NAME: stat
           DB_PORT: '3306'
-          DB_USER: coredot
-          DB_ENDPOINT: shift-dev-aurora-cluster.cluster-c89v5jzuome9.ap-northeast-2.rds.amazonaws.com
-          DB_SM_ID : shift/product/aurora/coredot
+          DB_USER: stat_lambda
+          DB_ENDPOINT: stat-dev-aurora-cluster-instance-1.cie0pivfwnw8.ap-northeast-2.rds.amazonaws.com
+          DB_SM_ID : stat-dev-rds-sm
           REGION: ap-northeast-2
-          PLAN_ID : was7u8
-          SM_ID : shift/product/kasinfo
+          PLAN_ID : 7p5oq9
+          SM_ID : stat-dev-kas-sm
+          COGNITO_USER_POOL_ID : ap-northeast-2_FkC6uTaVh
           PARAMETER_STORE_VALUE : 'dev_maintenance'
-
   TransferCleaner:
     Type: 'AWS::Serverless::Function'
     Properties:
@@ -158,26 +152,25 @@ Resources:
       Description: '전송 등록된 작업들중 유효하지 않은것들 찾아서 삭제(또는 상태 셋팅)'
       MemorySize: 128
       Timeout: 30
-      Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSSMRole'
+      Role: 'arn:aws:iam::151057464517:role/role_lamda_rds_sm'
       AutoPublishAlias: live
       VpcConfig:
         SecurityGroupIds:
-          - sg-0e2bd8387180359c9
+          - sg-0264570acb525ea2c
         SubnetIds:
-          - subnet-0732d7b0216fbe2f7
-          - subnet-078099e1972636375
-          - subnet-08a164a0080a216c4
-          - subnet-00c6531721f8d485a
+          - subnet-046d19f8679e0c3ba
+          - subnet-056eb2522829ac617
       Environment:
         Variables:
-          DB_NAME: shift
+          DB_NAME: stat
           DB_PORT: '3306'
-          DB_USER: coredot
-          DB_ENDPOINT: shift-dev-aurora-cluster.cluster-c89v5jzuome9.ap-northeast-2.rds.amazonaws.com
-          DB_SM_ID : shift/product/aurora/coredot
+          DB_USER: stat_lambda
+          DB_ENDPOINT: stat-dev-aurora-cluster-instance-1.cie0pivfwnw8.ap-northeast-2.rds.amazonaws.com
+          DB_SM_ID : stat-dev-rds-sm
           REGION: ap-northeast-2
-          PLAN_ID : was7u8
-          SM_ID : shift/product/kasinfo
+          PLAN_ID : 7p5oq9
+          SM_ID : stat-dev-kas-sm
+          COGNITO_USER_POOL_ID : ap-northeast-2_FkC6uTaVh
           PARAMETER_STORE_VALUE : 'dev_maintenance'
   TempLinkCleaner:
     Type: 'AWS::Serverless::Function'
@@ -187,26 +180,25 @@ Resources:
       Description: '임시 링크에 등록된 작업들중 유효하지 않은것들 찾아서 삭제(또는 상태 셋팅)'
       MemorySize: 128
       Timeout: 30
-      Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSSMRole'
+      Role: 'arn:aws:iam::151057464517:role/role_lamda_rds_sm'
       AutoPublishAlias: live
       VpcConfig:
         SecurityGroupIds:
-          - sg-0e2bd8387180359c9
+          - sg-0264570acb525ea2c
         SubnetIds:
-          - subnet-0732d7b0216fbe2f7
-          - subnet-078099e1972636375
-          - subnet-08a164a0080a216c4
-          - subnet-00c6531721f8d485a
+          - subnet-046d19f8679e0c3ba
+          - subnet-056eb2522829ac617
       Environment:
         Variables:
-          DB_NAME: shift
+          DB_NAME: stat
           DB_PORT: '3306'
-          DB_USER: coredot
-          DB_ENDPOINT: shift-dev-aurora-cluster.cluster-c89v5jzuome9.ap-northeast-2.rds.amazonaws.com
-          DB_SM_ID : shift/product/aurora/coredot
+          DB_USER: stat_lambda
+          DB_ENDPOINT: stat-dev-aurora-cluster-instance-1.cie0pivfwnw8.ap-northeast-2.rds.amazonaws.com
+          DB_SM_ID : stat-dev-rds-sm
           REGION: ap-northeast-2
-          PLAN_ID : was7u8
-          SM_ID : shift/product/kasinfo
+          PLAN_ID : 7p5oq9
+          SM_ID : stat-dev-kas-sm
+          COGNITO_USER_POOL_ID : ap-northeast-2_FkC6uTaVh
           PARAMETER_STORE_VALUE : 'dev_maintenance'
   TransferStats:
     Type: 'AWS::Serverless::Function'
@@ -216,26 +208,25 @@ Resources:
       Description: '전송 기록 통계를 위한 배치 작업'
       MemorySize: 128
       Timeout: 30
-      Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSSMRole'
+      Role: 'arn:aws:iam::151057464517:role/role_lamda_rds_sm'
       AutoPublishAlias: live
       VpcConfig:
         SecurityGroupIds:
-          - sg-0e2bd8387180359c9
+          - sg-0264570acb525ea2c
         SubnetIds:
-          - subnet-0732d7b0216fbe2f7
-          - subnet-078099e1972636375
-          - subnet-08a164a0080a216c4
-          - subnet-00c6531721f8d485a
+          - subnet-046d19f8679e0c3ba
+          - subnet-056eb2522829ac617
       Environment:
         Variables:
-          DB_NAME: shift
+          DB_NAME: stat
           DB_PORT: '3306'
-          DB_USER: coredot
-          DB_ENDPOINT: shift-dev-aurora-cluster.cluster-c89v5jzuome9.ap-northeast-2.rds.amazonaws.com
-          DB_SM_ID : shift/product/aurora/coredot
+          DB_USER: stat_lambda
+          DB_ENDPOINT: stat-dev-aurora-cluster-instance-1.cie0pivfwnw8.ap-northeast-2.rds.amazonaws.com
+          DB_SM_ID : stat-dev-rds-sm
           REGION: ap-northeast-2
-          PLAN_ID : was7u8
-          SM_ID : shift/product/kasinfo
+          PLAN_ID : 7p5oq9
+          SM_ID : stat-dev-kas-sm
+          COGNITO_USER_POOL_ID : ap-northeast-2_FkC6uTaVh
           PARAMETER_STORE_VALUE : 'dev_maintenance'
   LinkStats:
     Type: 'AWS::Serverless::Function'
@@ -245,26 +236,25 @@ Resources:
       Description: '링크 기록 통계를 위한 배치 작업'
       MemorySize: 128
       Timeout: 30
-      Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSSMRole'
+      Role: 'arn:aws:iam::151057464517:role/role_lamda_rds_sm'
       AutoPublishAlias: live
       VpcConfig:
         SecurityGroupIds:
-          - sg-0e2bd8387180359c9
+          - sg-0264570acb525ea2c
         SubnetIds:
-          - subnet-0732d7b0216fbe2f7
-          - subnet-078099e1972636375
-          - subnet-08a164a0080a216c4
-          - subnet-00c6531721f8d485a
+          - subnet-046d19f8679e0c3ba
+          - subnet-056eb2522829ac617
       Environment:
         Variables:
-          DB_NAME: shift
+          DB_NAME: stat
           DB_PORT: '3306'
-          DB_USER: coredot
-          DB_ENDPOINT: shift-dev-aurora-cluster.cluster-c89v5jzuome9.ap-northeast-2.rds.amazonaws.com
-          DB_SM_ID : shift/product/aurora/coredot
+          DB_USER: stat_lambda
+          DB_ENDPOINT: stat-dev-aurora-cluster-instance-1.cie0pivfwnw8.ap-northeast-2.rds.amazonaws.com
+          DB_SM_ID : stat-dev-rds-sm
           REGION: ap-northeast-2
-          PLAN_ID : was7u8
-          SM_ID : shift/product/kasinfo
+          PLAN_ID : 7p5oq9
+          SM_ID : stat-dev-kas-sm
+          COGNITO_USER_POOL_ID : ap-northeast-2_FkC6uTaVh
           PARAMETER_STORE_VALUE : 'dev_maintenance'
   linkCancelCleaner:
     Type: 'AWS::Serverless::Function'
@@ -274,26 +264,25 @@ Resources:
       Description: '링크 해지 기록 클린 작업'
       MemorySize: 128
       Timeout: 30
-      Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSSMRole'
+      Role: 'arn:aws:iam::151057464517:role/role_lamda_rds_sm'
       AutoPublishAlias: live
       VpcConfig:
         SecurityGroupIds:
-          - sg-0e2bd8387180359c9
+          - sg-0264570acb525ea2c
         SubnetIds:
-          - subnet-0732d7b0216fbe2f7
-          - subnet-078099e1972636375
-          - subnet-08a164a0080a216c4
-          - subnet-00c6531721f8d485a
+          - subnet-046d19f8679e0c3ba
+          - subnet-056eb2522829ac617
       Environment:
         Variables:
-          DB_NAME: shift
+          DB_NAME: stat
           DB_PORT: '3306'
-          DB_USER: coredot
-          DB_ENDPOINT: shift-dev-aurora-cluster.cluster-c89v5jzuome9.ap-northeast-2.rds.amazonaws.com
-          DB_SM_ID : shift/product/aurora/coredot
+          DB_USER: stat_lambda
+          DB_ENDPOINT: stat-dev-aurora-cluster-instance-1.cie0pivfwnw8.ap-northeast-2.rds.amazonaws.com
+          DB_SM_ID : stat-dev-rds-sm
           REGION: ap-northeast-2
-          PLAN_ID : was7u8
-          SM_ID : shift/product/kasinfo
+          PLAN_ID : 7p5oq9
+          SM_ID : stat-dev-kas-sm
+          COGNITO_USER_POOL_ID : ap-northeast-2_FkC6uTaVh
           PARAMETER_STORE_VALUE : 'dev_maintenance'
   KasTransferCrawler:
     Type: 'AWS::Serverless::Function'
@@ -303,24 +292,23 @@ Resources:
       Description: '회계 정산을 위한 KAS 트랜잭션 크롤링작업'
       MemorySize: 128
       Timeout: 600
-      Role: 'arn:aws:iam::180677353921:role/CoredotLambdaSQSRDSSMRole'
+      Role: 'arn:aws:iam::151057464517:role/role_lamda_rds_sm'
       AutoPublishAlias: live
       VpcConfig:
         SecurityGroupIds:
-          - sg-0e2bd8387180359c9
+          - sg-0264570acb525ea2c
         SubnetIds:
-          - subnet-0732d7b0216fbe2f7
-          - subnet-078099e1972636375
-          - subnet-08a164a0080a216c4
-          - subnet-00c6531721f8d485a
+          - subnet-046d19f8679e0c3ba
+          - subnet-056eb2522829ac617
       Environment:
         Variables:
-          DB_NAME: shift
+          DB_NAME: stat
           DB_PORT: '3306'
-          DB_USER: coredot
-          DB_ENDPOINT: shift-dev-aurora-cluster.cluster-c89v5jzuome9.ap-northeast-2.rds.amazonaws.com
-          DB_SM_ID : shift/product/aurora/coredot
+          DB_USER: stat_lambda
+          DB_ENDPOINT: stat-dev-aurora-cluster-instance-1.cie0pivfwnw8.ap-northeast-2.rds.amazonaws.com
+          DB_SM_ID : stat-dev-rds-sm
           REGION: ap-northeast-2
-          PLAN_ID : was7u8
-          SM_ID : shift/product/kasinfo
+          PLAN_ID : 7p5oq9
+          SM_ID : stat-dev-kas-sm
+          COGNITO_USER_POOL_ID : ap-northeast-2_FkC6uTaVh
           PARAMETER_STORE_VALUE : 'dev_maintenance'
