@@ -31,6 +31,7 @@ Resources:
           COGNITO_USER_POOL_ID : ap-northeast-2_FkC6uTaVh
           PARAMETER_STORE_VALUE : 'dev_maintenance'
           QUEUE_URL : https://sqs.ap-northeast-2.amazonaws.com/151057464517/stat-dev-reward-sqs.fifo
+          KAS_xChainId : 1001
   RewardJobExecutor:
     Type: 'AWS::Serverless::Function'
     Properties:
@@ -59,6 +60,7 @@ Resources:
           SM_ID : stat-dev-kas-sm
           COGNITO_USER_POOL_ID : ap-northeast-2_FkC6uTaVh
           PARAMETER_STORE_VALUE : 'dev_maintenance'
+          KAS_xChainId : 1001
   TransferJobFetcher:
     Type: 'AWS::Serverless::Function'
     Properties:
@@ -88,6 +90,7 @@ Resources:
           COGNITO_USER_POOL_ID : ap-northeast-2_FkC6uTaVh
           PARAMETER_STORE_VALUE : 'dev_maintenance'
           QUEUE_URL : https://sqs.ap-northeast-2.amazonaws.com/151057464517/stat-dev-transfer-sqs.fifo
+          KAS_xChainId : 1001
   TransferJobExecutor:
     Type: 'AWS::Serverless::Function'
     Properties:
@@ -116,6 +119,7 @@ Resources:
           SM_ID : stat-dev-kas-sm
           COGNITO_USER_POOL_ID : ap-northeast-2_FkC6uTaVh
           PARAMETER_STORE_VALUE : 'dev_maintenance'
+          KAS_xChainId : 1001
   RewardCleaner:
     Type: 'AWS::Serverless::Function'
     Properties:
@@ -144,6 +148,7 @@ Resources:
           SM_ID : stat-dev-kas-sm
           COGNITO_USER_POOL_ID : ap-northeast-2_FkC6uTaVh
           PARAMETER_STORE_VALUE : 'dev_maintenance'
+          KAS_xChainId : 1001
   TransferCleaner:
     Type: 'AWS::Serverless::Function'
     Properties:
@@ -172,6 +177,7 @@ Resources:
           SM_ID : stat-dev-kas-sm
           COGNITO_USER_POOL_ID : ap-northeast-2_FkC6uTaVh
           PARAMETER_STORE_VALUE : 'dev_maintenance'
+          KAS_xChainId : 1001
   TempLinkCleaner:
     Type: 'AWS::Serverless::Function'
     Properties:
@@ -200,6 +206,7 @@ Resources:
           SM_ID : stat-dev-kas-sm
           COGNITO_USER_POOL_ID : ap-northeast-2_FkC6uTaVh
           PARAMETER_STORE_VALUE : 'dev_maintenance'
+          KAS_xChainId : 1001
   TransferStats:
     Type: 'AWS::Serverless::Function'
     Properties:
@@ -228,6 +235,7 @@ Resources:
           SM_ID : stat-dev-kas-sm
           COGNITO_USER_POOL_ID : ap-northeast-2_FkC6uTaVh
           PARAMETER_STORE_VALUE : 'dev_maintenance'
+          KAS_xChainId : 1001
   LinkStats:
     Type: 'AWS::Serverless::Function'
     Properties:
@@ -256,6 +264,7 @@ Resources:
           SM_ID : stat-dev-kas-sm
           COGNITO_USER_POOL_ID : ap-northeast-2_FkC6uTaVh
           PARAMETER_STORE_VALUE : 'dev_maintenance'
+          KAS_xChainId : 1001
   linkCancelCleaner:
     Type: 'AWS::Serverless::Function'
     Properties:
@@ -284,6 +293,7 @@ Resources:
           SM_ID : stat-dev-kas-sm
           COGNITO_USER_POOL_ID : ap-northeast-2_FkC6uTaVh
           PARAMETER_STORE_VALUE : 'dev_maintenance'
+          KAS_xChainId : 1001
   KasTransferCrawler:
     Type: 'AWS::Serverless::Function'
     Properties:
@@ -312,3 +322,63 @@ Resources:
           SM_ID : stat-dev-kas-sm
           COGNITO_USER_POOL_ID : ap-northeast-2_FkC6uTaVh
           PARAMETER_STORE_VALUE : 'dev_maintenance'
+          KAS_xChainId : 1001
+  NFtJobFetcher:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: lambda/nft_job_fetcher.handler
+      Runtime: nodejs12.x
+      Description: 'NFT 상태 확인할 목록 가져와서 SQS에 등록'
+      MemorySize: 128
+      Timeout: 30
+      Role: 'arn:aws:iam::151057464517:role/role_lamda_rds_sm'
+      AutoPublishAlias: live
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-0264570acb525ea2c
+        SubnetIds:
+          - subnet-046d19f8679e0c3ba
+          - subnet-056eb2522829ac617
+      Environment:
+        Variables:
+          DB_NAME: stat
+          DB_PORT: '3306'
+          DB_USER: stat_lambda
+          DB_ENDPOINT: stat-dev-aurora-cluster-instance-1.cie0pivfwnw8.ap-northeast-2.rds.amazonaws.com
+          DB_SM_ID : stat-dev-rds-sm
+          REGION: ap-northeast-2
+          PLAN_ID : 7p5oq9
+          SM_ID : stat-dev-kas-sm
+          COGNITO_USER_POOL_ID : ap-northeast-2_FkC6uTaVh
+          PARAMETER_STORE_VALUE : 'dev_maintenance'
+          QUEUE_URL : https://sqs.ap-northeast-2.amazonaws.com/151057464517/stat-dev-nft-sqs.fifo
+          KAS_xChainId : 1001
+  NftJobExecutor:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: lambda/nft_job_executor.handler
+      Runtime: nodejs12.x
+      Description: 'SQS에 등록된 NFT 상태 확인 작업을 하나 가져와서 실행'
+      MemorySize: 128
+      Timeout: 29
+      Role: 'arn:aws:iam::151057464517:role/role_lamda_rds_sm'
+      AutoPublishAlias: live
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-0264570acb525ea2c
+        SubnetIds:
+          - subnet-046d19f8679e0c3ba
+          - subnet-056eb2522829ac617
+      Environment:
+        Variables:
+          DB_NAME: stat
+          DB_PORT: '3306'
+          DB_USER: stat_lambda
+          DB_ENDPOINT: stat-dev-aurora-cluster-instance-1.cie0pivfwnw8.ap-northeast-2.rds.amazonaws.com
+          DB_SM_ID : stat-dev-rds-sm
+          REGION: ap-northeast-2
+          PLAN_ID : 7p5oq9
+          SM_ID : stat-dev-kas-sm
+          COGNITO_USER_POOL_ID : ap-northeast-2_FkC6uTaVh
+          PARAMETER_STORE_VALUE : 'dev_maintenance'
+          KAS_xChainId : 1001

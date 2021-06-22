@@ -26,6 +26,10 @@ const InsertLogSeq = async function(table, tableId, type, code, message) {
             const [updateTransferResult, f3] = await pool.query(dbQuery.transfer_log_update.queryString, [logSeq, tableId]);
             console.log('updateTransferResult', updateTransferResult);
         }
+        else if (table === 'nft') {
+            const [updateNftResult, f4] = await pool.query(dbQuery.nft_log_update.queryString, [logSeq, tableId]);
+            console.log('updateNftResult', updateNftResult);
+        }
 
         if (logSeq) {
             console.log('return logseq')

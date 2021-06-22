@@ -38,24 +38,23 @@ exports.handler = async(event) => {
         let data = JSON.parse(body);
         console.log('[VALUE] data', data)
         let txHash = data.tx_hash;
-        let transferSeq = data.transfer_seq;
+        let nftSeq = data.nft_seq;
         const serviceCallbackSeq = data.svc_callback_seq || null;
-        const rewardQueueSequence = data.rwd_q_seq;
 
-        console.log('[VALUE] transferSeq : ', transferSeq);
+        console.log('[VALUE] nftSeq : ', nftSeq);
         console.log('[VALUE] tx_hash : ', txHash);
         console.log('[VALUE] serviceCallbackSeq : ', serviceCallbackSeq);
-        console.log('[VALUE] rewardQueueSequence : ', rewardQueueSequence);
 
         //[TASK] Update Transfer Table
-        const [updateResult, f1] = await pool.query(dbQuery.transfer_update_job.queryString, ['processing', transferSeq]);
+        const [updateResult, f1] = await pool.query(dbQuery.nft_update_job.queryString, ['processing', nftSeq]);
 
         //[TASK] CHECK TRANSACTION [KAS]
+        // NFT는 바오밥이 없기 때문에 8217 고정 픽스
         const satusCheckUrl = kasInfo.apiUrl + 'tx/' + txHash;
         const checkHeader = {
             'Authorization': secretValue.kas_authorization,
             'Content-Type': 'application/json',
-            'x-chain-id': process.env.KAS_xChainId,
+            'x-chain-id': 8217,
         };
 
         const txStatusResult = await axios
@@ -69,12 +68,13 @@ exports.handler = async(event) => {
 
 
         if (txStatusResult.error) {
+            //트랜잭션을 확인 할 수 없는 상태라면 unknown // kas error or invalid hash
             //[TASK] Update Transfer Table
             let code = txStatusResult.error.data.code;
             let message = txStatusResult.error.data.message;
-            const [updateUnknownResult, f1] = await pool.query(dbQuery.transfer_update_tx_job.queryString, ['unknown', 'done', transferSeq]);
+            const [updateUnknownResult, f1] = await pool.query(dbQuery.nft_update_tx_status_job_end.queryString, ['unknown', 'done', nftSeq]);
             console.log('[TASK - Update unkown]', updateUnknownResult);
-            const logSeq = await InsertLogSeq('transfer', transferSeq, 'KAS', code, message);
+            const logSeq = await InsertLogSeq('nft', nftSeq, 'KAS', code, message);
             console.log('[TASK - code]', code);
             console.log('[TASK - message]', message);
             console.log('[TASK - ERRORLOG]', logSeq);
@@ -94,57 +94,42 @@ exports.handler = async(event) => {
             switch (txStatus) {
                 case 'Committed':
                     {
-                        let isDelegated = DelegatedCheck(txStatusResult.data);
-                        let newFee = null;
-                        if (isDelegated) {
-                            newFee = 0;
-                        }
-                        else {
-                            newFee = new BigNumber(txStatusResult.data.gasPrice * txStatusResult.data.gasUsed).toString(10);
-                        }
                         //[TASK - Update Transfer Table]
-                        const [updateResult, f5] = await pool.query(dbQuery.transfer_update_tx_job_fee.queryString, ['success', 'done', newFee, transferSeq]);
+                        const [updateResult, f5] = await pool.query(dbQuery.nft_update_tx_status_job_end.queryString, ['success', 'done', nftSeq]);
                         console.log('[Committed] Update Transfer Table', updateResult);
                         //[TASK - ServiceCallback]
                         if (serviceCallbackSeq) {
-                            const callbackResult = await RequestServiceCallbackUrl(serviceCallbackSeq, `tansferSequence=${transferSeq}`);
+                            const callbackResult = await RequestServiceCallbackUrl(serviceCallbackSeq, `nftSequence=${nftSeq}&status=success`);
                             console.log('[Committed] callbackResult', callbackResult)
-                        }
-                        //[TASK - Check Bulk]
-                        if (rewardQueueSequence) {
-                            const [rewardQueueResult, f5] = await pool.query(dbQuery.reward_get_by_seq.queryString, [rewardQueueSequence]);
-                            if (rewardQueueResult.length > 0 && rewardQueueResult[0].bulk_seq) {
-                                let bulkSeq = rewardQueueResult[0].bulk_seq;
-                                console.log('[TASK - Check Bulk] bulkSeq', bulkSeq);
-                                const [updateResult, f1] = await pool.query(dbQuery.bulk_transfer_update_success_count.queryString, [bulkSeq]);
-                                console.log('[TASK - Check Bulk] result', updateResult);
-
-                            }
                         }
                         break;
                     }
                 case 'CommitError':
                     {
-                        const [updateResult, f5] = await pool.query(dbQuery.transfer_update_tx_job.queryString, ['fail', 'done', transferSeq]);
+                        const [updateResult, f5] = await pool.query(dbQuery.nft_update_tx_status_job_end.queryString, ['fail', 'done', nftSeq]);
                         console.log('[CommitError] updateResult', updateResult);
                         let code = txStatusResult.data.txError || '';
                         let message = txStatusResult.data.errorMessage || '';
-                        const logSeq = await InsertLogSeq('transfer', transferSeq, 'KAS', code, message);
+                        const logSeq = await InsertLogSeq('nft', nftSeq, 'KAS', code, message);
                         console.log('[TASK - code]', code);
                         console.log('[TASK - message]', message);
                         console.log('[TASK - ERRORLOG]', logSeq);
+                        if (serviceCallbackSeq) {
+                            const callbackResult = await RequestServiceCallbackUrl(serviceCallbackSeq, `nftSequence=${nftSeq}&status=fail`);
+                            console.log('[Committed] callbackResult', callbackResult)
+                        }
                         break;
                     }
                 case 'Pending':
                     {
-                        const [updateResult, f5] = await pool.query(dbQuery.transfer_update_tx_job.queryString, ['pending', 'ready', transferSeq]);
+                        const [updateResult, f5] = await pool.query(dbQuery.nft_update_tx_status_job.queryString, ['pending', 'ready', nftSeq]);
                         console.log('[Pending] updateResult', updateResult);
                         console.log('[Pending] Response Data', txStatusResult.data);
                         break;
                     }
                 case 'Submitted':
                     {
-                        const [updateResult, f5] = await pool.query(dbQuery.transfer_update_tx_job.queryString, ['submit', 'ready', transferSeq]);
+                        const [updateResult, f5] = await pool.query(dbQuery.nft_update_tx_status_job.queryString, ['submit', 'ready', nftSeq]);
                         console.log('[Submitted] updateResult', updateResult);
                         console.log('[Submitted] Response Data', txStatusResult.data);
                         break;
@@ -152,9 +137,13 @@ exports.handler = async(event) => {
                 default:
                     {
                         // KAS Result Status가 비정상일 경우
-                        const [updateResult, f1] = await pool.query(dbQuery.transfer_update_tx_job.queryString, ['unknown', 'done', transferSeq]);
+                        const [updateResult, f1] = await pool.query(dbQuery.nft_update_tx_status_job_end.queryString, ['unknown', 'done', nftSeq]);
                         console.log('[Unknown] updateResult', updateResult);
                         console.log('[Unknown] Response Data', txStatusResult.data);
+                        if (serviceCallbackSeq) {
+                            const callbackResult = await RequestServiceCallbackUrl(serviceCallbackSeq, `nftSequence=${nftSeq}&status=unknown`);
+                            console.log('[Committed] callbackResult', callbackResult)
+                        }
                         break;
                     }
             }
@@ -163,7 +152,7 @@ exports.handler = async(event) => {
             // KAS Result가 비정상일 경우
             let newStatus = 'unknown';
             let job_status = 'done';
-            const [updateUnknownResult, f1] = await pool.query(dbQuery.transfer_update_tx_job.queryString, [newStatus, job_status, transferSeq]);
+            const [updateUnknownResult, f1] = await pool.query(dbQuery.nft_update_tx_status_job_end.queryString, [newStatus, job_status, nftSeq]);
             console.log('[KAS] Response Data Dont Exist', txStatusResult.data);
             console.log('[Unknown] updateUnknownResult', updateUnknownResult);
 
