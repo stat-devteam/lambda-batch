@@ -347,7 +347,7 @@ Resources:
       Timeout: 30
       Role: 'arn:aws:iam::151057464517:role/role_lamda_rds_sm'
       AutoPublishAlias: live
-     VpcConfig:
+      VpcConfig:
         SecurityGroupIds:
           - sg-0e434a2241c843ab1
         SubnetIds:
