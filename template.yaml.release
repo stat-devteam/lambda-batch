@@ -366,6 +366,7 @@ Resources:
           SM_ID : stat-release-kas-sm
           COGNITO_USER_POOL_ID : ap-northeast-2_hOuyTXi19
           PARAMETER_STORE_VALUE : 'release_maintenance'
+          QUEUE_URL : https://sqs.ap-northeast-2.amazonaws.com/151057464517/stat-release-nft-sqs.fifo
           KAS_xChainId : 8217
   NftJobExecutor:
     Type: 'AWS::Serverless::Function'
