@@ -25,7 +25,7 @@ const getBalanceOf = async(fromAddress) => {
     const axiosHeader = {
         'Authorization': secretValue.kas_authorization,
         'Content-Type': 'application/json',
-        'x-chain-id': kasInfo.xChainId,
+        'x-chain-id': process.env.KAS_xChainId,
     };
 
     const sendBody = {
@@ -87,7 +87,7 @@ const sendToken = async(fromAddress, toAddress, amount) => {
     const axiosHeader = {
         'Authorization': secretValue.kas_authorization,
         'Content-Type': 'application/json',
-        'x-chain-id': kasInfo.xChainId,
+        'x-chain-id': process.env.KAS_xChainId,
         'x-krn': secretValue.kas_x_krn
     };
     console.log('axiosHeader', axiosHeader)

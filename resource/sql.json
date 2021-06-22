@@ -158,6 +158,11 @@
         "params": ["log_seq", "transfer_seq"],
         "desc": "transfer_log_update"
     },
+    "nft_log_update": {
+        "queryString": "UPDATE nft SET log_seq = ? WHERE nft_seq = ?",
+        "params": ["log_seq", "nft_seq"],
+        "desc": "nft_log_update"
+    },
     "transfer_get_by_rwd_q": {
         "queryString": "SELECT * FROM transfer WHERE rwd_q_seq = ?",
         "params": ["rwd_q_seq"],
@@ -207,5 +212,30 @@
         "queryString": "INSERT INTO accounting_stats(year, month, day, accnt_id, type, svc_grp_id, week, svc_num, svc_name, transfer_count, amount_sum, fee_sum) SELECT year(subdate(curdate(),interval 1 day)), month(subdate(curdate(),interval 1 day)), day(subdate(curdate(),interval 1 day)), accnt_id, type, svc_grp_id, weekofyear(subdate(curdate(),interval 1 day)), ifnull(svc_num, 0) as svc_num, name, transfer_count, amount_sum, fee_sum FROM ( select kt.accnt_id as accnt_id, kt.type as type, ifnull(s.svc_grp_id, 'external') as svc_grp_id, s.svc_num, s.name, count(*) as transfer_count, ifnull(sum(kt.amount),0) as amount_sum, ifnull(sum(kt.fee),0) as fee_sum from kas_transfer as kt left outer join transfer as t on kt.tx_hash = t.tx_hash left join service as s on t.svc_num = s.svc_num where kt.transfer_reg_dt >= subdate(curdate(),interval 1 day) and kt.transfer_reg_dt < subdate(curdate(),interval 0 day)group by kt.accnt_id, kt.type, s.svc_grp_id, s.svc_num) as stat ON DUPLICATE KEY UPDATE transfer_count=stat.transfer_count, amount_sum=stat.amount_sum, fee_sum=stat.fee_sum;",
         "params": [""],
         "desc": "accounting_stats_insert"
+    },
+    "nft_job_fetch_select": {
+        "queryString": "SELECT * FROM nft WHERE tx_status IN ('submit','pending') AND job_status='ready' LIMIT 200",
+        "params": [],
+        "desc": "NFT 작업중 배치작업으로 트랜잭션 상태를 확인해야할 전송 작업을 가져온다. LIMIT"
+    },
+    "nft_job_fetch_update": {
+        "queryString": "UPDATE nft SET job_status='fetched', job_fetched_dt = now() WHERE nft_seq=? AND job_status ='ready'",
+        "params": ["nft_seq"],
+        "desc": "NFT 작업 상태를 fetched로 변경"
+    },
+    "nft_update_job": {
+        "queryString": "UPDATE nft SET job_status = ? WHERE nft_seq = ?",
+        "params": ["job_status", "nft_seq"],
+        "desc": "transfer update job_status"
+    },
+    "nft_update_tx_status_job_end": {
+        "queryString": "UPDATE nft SET tx_status = ?, job_status =?, tx_end_dt = now() WHERE nft_seq = ?",
+        "params": ["tx_status", "job_status", "nft_seq"],
+        "desc": "nft_update_tx_job"
+    },
+    "nft_update_tx_status_job": {
+        "queryString": "UPDATE nft SET tx_status = ?, job_status =? WHERE nft_seq = ?",
+        "params": ["tx_status", "job_status", "nft_seq"],
+        "desc": "nft_update_tx_job"
     }
 }

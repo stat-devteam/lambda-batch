@@ -1,6 +1,5 @@
 {
     "jsonRpcUrl": "https://node-api.klaytnapi.com/v1/klaytn",
     "apiUrl": "https://wallet-api.klaytnapi.com/v2/",
-    "thApiUrl": "https://th-api.klaytnapi.com/v2/",
-    "xChainId": 1001
+    "thApiUrl": "https://th-api.klaytnapi.com/v2/"
 }
