@@ -29,7 +29,7 @@ exports.handler = async(event) => {
     const pool = await dbPool.getPool();
 
     const secretValue = await smHandler.getSecretValue(process.env.SM_ID);
-    console.log('secretValue', secretValue)
+    console.log('secretValue!', secretValue)
 
     console.log('Received event:', JSON.stringify(event, null, 2));
     for (const { messageId, body } of event.Records) {
