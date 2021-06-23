@@ -376,6 +376,8 @@ Resources:
       Description: 'SQS에 등록된 NFT 상태 확인 작업을 하나 가져와서 실행'
       MemorySize: 128
       Timeout: 29
+      Role: 'arn:aws:iam::151057464517:role/role_lamda_rds_sm'
+      AutoPublishAlias: live
       VpcConfig:
         SecurityGroupIds:
           - sg-0e434a2241c843ab1
