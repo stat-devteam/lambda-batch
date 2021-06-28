@@ -237,5 +237,10 @@
         "queryString": "UPDATE nft SET tx_status = ?, job_status =? WHERE nft_seq = ?",
         "params": ["tx_status", "job_status", "nft_seq"],
         "desc": "nft_update_tx_job"
+    },
+    "nft_stats_daily_insert": {
+        "queryString": "INSERT INTO nft_stats(year, month, day , week, trader_id,nft_count) SELECT year(subdate(curdate(),interval 1 day)), month(subdate(curdate(),interval 1 day)), day(subdate(curdate(),interval 1 day)), weekofyear(subdate(curdate(),interval 1 day)),trader_id, nft_count FROM (select trader_id, count(*) as nft_count from nft where tx_reg_dt >= subdate(curdate(),interval 1 day) and tx_reg_dt < curdate() and tx_status = 'success' group by trader_id) as stat ON DUPLICATE KEY UPDATE nft_count=stat.nft_count;",
+        "params": [""],
+        "desc": "NFT 1일 통계"
     }
 }
