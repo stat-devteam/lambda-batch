@@ -428,3 +428,36 @@ Resources:
           COGNITO_USER_POOL_ID : ap-northeast-2_hOuyTXi19
           PARAMETER_STORE_VALUE : 'release_maintenance'
           KAS_xChainId : 8217
+  NftStatus:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: lambda/nft_status.handler
+      Runtime: nodejs12.x
+      Description: 'NFT 상태 확인 (삭제 확인)'
+      MemorySize: 256
+      Timeout: 10
+      Role: 'arn:aws:iam::151057464517:role/role_lamda_rds_sm'
+      AutoPublishAlias: live
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-0e434a2241c843ab1
+        SubnetIds:
+          - subnet-062ae03be1ac048f3
+          - subnet-0fafe4371b0e4312d
+      Environment:
+        Variables:
+          DB_NAME: stat
+          DB_PORT: '3306'
+          DB_USER: stat_lambda
+          DB_ENDPOINT: stat-release-aurora-cluster-instance-1.cie0pivfwnw8.ap-northeast-2.rds.amazonaws.com
+          DB_RO_ENDPOINT: stat-release-aurora-cluster-instance-1-ap-northeast-2c.cie0pivfwnw8.ap-northeast-2.rds.amazonaws.com
+          DB_SM_ID : stat-release-rds-sm
+          REGION: ap-northeast-2
+          PLAN_ID : 6kites
+          SM_ID : stat-release-kas-sm
+          COGNITO_USER_POOL_ID : ap-northeast-2_hOuyTXi19
+          PARAMETER_STORE_VALUE : 'release_maintenance'
+          KAS_xChainId : 8217
+          S3_IMGAE_BUCKET : stat-release-nft-img
+          KLIP_SM_ID : stat-release-klip-sm
+  
