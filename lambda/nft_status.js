@@ -88,7 +88,7 @@ exports.handler = async function(event) {
             let current_count = 0;
             while (total_count > current_count) {
                 console.log('current_count', current_count)
-                const [nft_success_list_page, f1] = await pool.query(dbQuery.nft_success_list_page.queryString, [current_count, 10]);
+                const [nft_success_list_page, f1] = await pool.query(dbQuery.nft_success_list_page.queryString, [current_count, 1000]);
                 current_count = current_count + 10;
                 console.log('nft_success_list_page', nft_success_list_page)
                 console.log('nft_success_list_page.length', nft_success_list_page.length)

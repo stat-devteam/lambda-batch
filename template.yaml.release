@@ -440,10 +440,10 @@ Resources:
       AutoPublishAlias: live
       VpcConfig:
         SecurityGroupIds:
-          - sg-0264570acb525ea2c
+          - sg-0e434a2241c843ab1
         SubnetIds:
-          - subnet-046d19f8679e0c3ba
-          - subnet-056eb2522829ac617
+          - subnet-062ae03be1ac048f3
+          - subnet-0fafe4371b0e4312d
       Environment:
         Variables:
           DB_NAME: stat
