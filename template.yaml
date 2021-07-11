@@ -411,3 +411,34 @@ Resources:
           COGNITO_USER_POOL_ID : ap-northeast-2_FkC6uTaVh
           PARAMETER_STORE_VALUE : 'dev_maintenance'
           KAS_xChainId : 1001
+  NftStatus:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: lambda/nft_status.handler
+      Runtime: nodejs12.x
+      Description: 'NFT 상태 확인 (삭제 확인)'
+      MemorySize: 256
+      Timeout: 10
+      Role: 'arn:aws:iam::151057464517:role/role_lamda_rds_sm'
+      AutoPublishAlias: live
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-0264570acb525ea2c
+        SubnetIds:
+          - subnet-046d19f8679e0c3ba
+          - subnet-056eb2522829ac617
+      Environment:
+        Variables:
+          DB_NAME: stat
+          DB_PORT: '3306'
+          DB_USER: stat_lambda
+          DB_ENDPOINT: stat-dev-aurora-cluster-instance-1.cie0pivfwnw8.ap-northeast-2.rds.amazonaws.com
+          DB_SM_ID : stat-dev-rds-sm
+          REGION: ap-northeast-2
+          PLAN_ID : 7p5oq9
+          SM_ID : stat-dev-kas-sm
+          COGNITO_USER_POOL_ID : ap-northeast-2_FkC6uTaVh
+          PARAMETER_STORE_VALUE : 'dev_maintenance'
+          KAS_xChainId : 1001
+          S3_IMGAE_BUCKET : stat-dev-nft-img
+          KLIP_SM_ID : stat-dev-klip-sm

@@ -1,0 +1,5 @@
+{
+    "apiUrl": "https://a2a-api.klipwallet.com/v2/a2a/",
+    "walletUrl": "https://api.klipwallet.com/v2/wallet/",
+    "partnerUrl": "https://api.klipwallet.com/v2/partner/"
+}

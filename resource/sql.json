@@ -242,5 +242,20 @@
         "queryString": "INSERT INTO nft_stats(year, month, day , week, trader_id,nft_count) SELECT year(subdate(curdate(),interval 1 day)), month(subdate(curdate(),interval 1 day)), day(subdate(curdate(),interval 1 day)), weekofyear(subdate(curdate(),interval 1 day)),trader_id, nft_count FROM (select trader_id, count(*) as nft_count from nft where tx_reg_dt >= subdate(curdate(),interval 1 day) and tx_reg_dt < curdate() and tx_status = 'success' group by trader_id) as stat ON DUPLICATE KEY UPDATE nft_count=stat.nft_count;",
         "params": [""],
         "desc": "NFT 1일 통계"
+    },
+    "nft_success_list_page": {
+        "queryString": "select a.* from (select nft_Seq from nft where tx_status='success' limit ?,?) b join nft a on a.nft_Seq=b.nft_Seq",
+        "params": ["page_offset", "page_size"],
+        "desc": "nft_validation_list_all_by_trader_id (NFT notification Sync)"
+    },
+    "nft_success_list_page_count": {
+        "queryString": "select count(*) as count from (select nft_Seq from nft where tx_status='success') b join nft a on a.nft_Seq=b.nft_Seq",
+        "params": ["page_offset", "page_size"],
+        "desc": "nft_validation_list_page_count (NFT notification Sync)"
+    },
+    "nft_delete_update_by_tx_hashs": {
+        "queryString": "update nft set tx_status = 'deleted' where tx_hash in (?)",
+        "params": ["tx_hash"],
+        "desc": "삭제된 tx_hash를 deleted 상태로 업데이트"
     }
 }
