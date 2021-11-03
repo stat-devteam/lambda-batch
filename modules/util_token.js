@@ -10,7 +10,6 @@ const getBalanceOf = async(fromAddress) => {
     console.log('param fromAddress', fromAddress);
     const secretValue = await smHandler.getSecretValue(process.env.SM_ID);
 
-
     const contract_address = tokenInfo.contractAddress;
     const api_detail_address = tokenInfo.callUrl;
     const contract_data = {
