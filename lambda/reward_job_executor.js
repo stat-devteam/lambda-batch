@@ -13,6 +13,7 @@ var { InsertLogSeq } = require("../modules/utils_error.js");
 const psHandler = require('../modules/util_ps.js');
 var Base64 = require("js-base64");
 const tokenUtil = require("../modules/util_token.js");
+const klayHandler = require('../modules/util_klay.js');
 
 exports.handler = async(event) => {
     console.log('[EVENT]', event);
@@ -100,7 +101,7 @@ exports.handler = async(event) => {
         if (validationHK && validationService && !transferExist) {
             //요청 수행할 수 있는 for loop condition
 
-            const balanceData = await tokenUtil.getBalanceOf(userKlaytnAddress);
+            const balanceData = await klayHandler.getBalanceOf(userKlaytnAddress);
 
             if (balanceData.result) {}
             else {
@@ -153,7 +154,7 @@ exports.handler = async(event) => {
 
 
             //[TASK] Klay Transfer
-            const sendResult = await tokenUtil.sendToken(hkKlaytnAddress, userKlaytnAddress, decimalAmount);
+            const sendResult = await klayHandler.sendToken(hkKlaytnAddress, userKlaytnAddress, decimalAmount);
             console.log('sendResult', sendResult);
 
             if (sendResult.result) {
