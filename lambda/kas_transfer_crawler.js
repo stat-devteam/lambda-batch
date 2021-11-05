@@ -34,7 +34,7 @@ exports.handler = async function(event) {
             // const endDate = moment(new Date('2021-05-13')).tz('Asia/Seoul');
             // var datesBetween = [];
             // var startingMoment = startDate;
-            
+
             // while (startingMoment <= endDate) {
             //     datesBetween.push(startingMoment.clone()); // clone to add new object
             //     console.log('startingMoment', startingMoment)
@@ -42,9 +42,9 @@ exports.handler = async function(event) {
             //     console.log('targetDay', targetDay);
             //     const [startUnix, endUnix] = getUnixRange(targetDay);
             //     const [hkKlaytnAddressAllResult, f1] = await pool.query(dbQuery.hk_klaytn_account_list_all.queryString);
-            
+
             //     console.log('hkKlaytnAddressAllResult', hkKlaytnAddressAllResult);
-            
+
             //     const kasHeaders = {
             //         'x-chain-id': kasInfo.xChainId,
             //         "Content-Type": "application/json"
@@ -54,19 +54,19 @@ exports.handler = async function(event) {
             //         password: secretValue.kas_secret_access_key,
             //     }
             //     const range = `${startUnix},${endUnix}`;
-            
+
             //     for (let i in hkKlaytnAddressAllResult) {
-            
+
             //         const targetKlaytnAddress = hkKlaytnAddressAllResult[i].address;
             //         console.log('targetKlaytnAddress', targetKlaytnAddress)
             //         const targetAccountId = hkKlaytnAddressAllResult[i].accnt_id;
             //         console.log('targetAccountId', targetAccountId)
-            
+
             //         // ALL Transaction by KAS API
             //         const kasTransferListResult = await getKasTransferList(kasHeaders, kasAuth, targetKlaytnAddress, range, '');
             //         console.log('kasTransferListResult', kasTransferListResult);
             //         console.log('kasTransferListResult.length', kasTransferListResult.length);
-            
+
             //         // timestamp는 second 단위로 중복의 정렬 케이스가 있기 때문에, transactionIndex로 한번더 정렬
             //         let orderedKasTransferList = _.orderBy(kasTransferListResult, ['timestamp', 'transactionIndex'], ['asc', 'asc']);
             //         console.log('orderedKasTransferList', orderedKasTransferList)
@@ -78,11 +78,11 @@ exports.handler = async function(event) {
             //             console.log('[GET Last BALANCE ]', kasTransferLastRow[0].balance)
             //             lastBalance = kasTransferLastRow[0].balance;
             //         }
-            
+
             //         let insertArray = [];
             //         // kas_transfer row 가공
             //         for (let i in orderedKasTransferList) {
-            
+
             //             const targetTransaction = orderedKasTransferList[i];
             //             const transfer_reg_dt = moment.unix(targetTransaction.timestamp).tz('Asia/Seoul').format('YYYY-MM-DD HH:mm:ss');
             //             const amount = new BigNumber(targetTransaction.value).toString(10);
@@ -95,7 +95,7 @@ exports.handler = async function(event) {
             //             const type_int = targetTransaction.typeInt;
             //             const status_int = targetTransaction.status;
             //             const balance = updateLastBalance(lastBalance, type, amount, fee);
-            
+
             //             // accnt_id, type, type_int, tx_hash, status_int, from_address, to_address, amount, fee_address, fee, balance, transfer_reg_dt
             //             const insertItem = [targetAccountId, type, type_int, tx_hash, status_int, from_address, to_address, amount, fee_address, fee, balance, transfer_reg_dt];
             //             lastBalance = balance
@@ -110,10 +110,10 @@ exports.handler = async function(event) {
             //             console.log('affectedRows', insertResult.affectedRows)
             //         }
             //     }
-            
+
             //     startingMoment.add(1, 'days');
             // }
-            
+
             // console.log('startingMoment', startingMoment)
 
             // yesterday
@@ -126,7 +126,7 @@ exports.handler = async function(event) {
             console.log('hkKlaytnAddressAllResult', hkKlaytnAddressAllResult);
 
             const kasHeaders = {
-                'x-chain-id': kasInfo.xChainId,
+                'x-chain-id': process.env.KAS_xChainId,
                 "Content-Type": "application/json"
             }
             const kasAuth = {
